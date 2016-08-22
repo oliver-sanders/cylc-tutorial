@@ -1,0 +1,467 @@
+
+\section{Suite Writing Tutorial}
+
+\subsection{Introduction}
+
+This tutorial walks you through creating a suite from scratch, using a simple example. Usually, users will create suites from existing standard template suites.
+
+\subsection{Starting Out}
+
+This example supposes:
+\begin{itemize}
+    \item We're on a sailing ship, making a passage
+    \item We're navigating using a Fortran program
+\end{itemize}
+
+Our Fortran program reads in some position data and then pretends to calculate a new one based on a compass direction and a 5 knot speed for a given period of time. The code is listed here:
+
+\lstset{language=Fortran}
+\begin{lstlisting}[columns=fullflexible,basicstyle=\small]
+PROGRAM extract_compass_log
+IMPLICIT NONE
+CHARACTER(31)    :: dt_hr_env    ! No. of hours, from environment
+CHARACTER(255)   :: pos_fpath    ! File path to a position file with lat/long
+INTEGER:: code             ! iostat code
+INTEGER:: timevalues(8)    ! time values
+INTEGER, PARAMETER :: real64=SELECTED_REAL_KIND(15, 307)
+REAL(KIND=real64) :: ang_distance ! Angular distance travelled across Earth
+REAL(KIND=real64) :: dt_hr        ! No. of hours elapsed, from dt_hr_env
+REAL(KIND=real64) :: heading      ! Compass heading in radians
+REAL(KIND=real64) :: lat          ! Initial latitude
+REAL(KIND=real64) :: long         ! Initial longitude
+REAL(KIND=real64) :: new_lat      ! Final latitude
+REAL(KIND=real64) :: new_long     ! Final longitude
+REAL(KIND=real64) :: speed_kn=5.0 ! Speed in knots
+REAL(KIND=real64), PARAMETER :: pi=3.141592654          ! pi
+REAL(KIND=real64), PARAMETER :: radius_earth_nm=3443.89 ! Earth radius (nm)
+
+! Get position file location via $POSITION_FILEPATH
+CALL get_environment_variable("POSITION_FILEPATH",value=pos_fpath,status=code)
+IF (code /= 0) THEN
+  WRITE(0,*) "$POSITION_FILEPATH: not set."
+  STOP 1
+END IF
+
+! Read in starting latitude and longitude
+OPEN(1,file=pos_fpath,action="read",iostat=code)
+IF (code /= 0) THEN
+  WRITE(0,*) pos_fpath,": position file read failed."
+  STOP 1
+END IF
+READ(1,*) lat,long
+CLOSE(1)
+
+! Convert to radians, where they belong
+lat = (pi/180.0) * lat
+long = (pi/180.0) * long
+
+! Read in our duration input
+CALL get_environment_variable("TIME_INTERVAL_HRS",value=dt_hr_env,status=code)
+IF (code /= 0) THEN
+  WRITE(0,*) "$TIME_INTERVAL_HRS: not set"
+  STOP 1
+END IF
+READ(dt_hr_env,*) dt_hr
+
+! Pretend to extract an average heading from the ship's compass
+CALL date_and_time(VALUES=timevalues)
+heading = mod(1000 * timevalues(7) + timevalues(8), 60) * 2 * pi / 60
+
+! This is how far we went, in radians:
+! (1 knot = 1 nautical mile / 1 hour)
+ang_distance = (speed_kn*dt_hr) / radius_earth_nm
+
+! Get the new latitude and longitude
+new_lat = ASIN(SIN(lat) * COS(ang_distance) + &
+               COS(lat) * SIN(ang_distance) * COS(heading))
+new_long = long + &
+           ATAN2(SIN(heading) * SIN(ang_distance) * COS(lat), &
+                 COS(ang_distance) - SIN(lat) * SIN(new_lat))
+new_lat = (180.0/pi) * new_lat
+new_long = (180.0/pi) * new_long
+
+PRINT*, "New position, me hearties:",new_lat," ",new_long
+
+! Overwrite position file with new lat and long
+OPEN(1,file=pos_fpath,action='write')
+WRITE(1,*) new_lat,new_long
+CLOSE(1)
+END PROGRAM
+\end{lstlisting}
+
+We need to analyse our program to figure out what the dependencies are.
+
+Have a look through the code and look for:
+\begin{itemize}
+    \item what files or environment it needs to run
+    \item what it produces
+    \item when it might need to run
+\end{itemize}
+
+\subsection{Inputs}
+
+The inputs to this Fortran code are:
+\begin{itemize}
+    \item Two environment variables, TIME\_INTERVAL\_HRS and POS\_FPATH
+    \item An input (and output) file located at \$POS\_FPATH that stores the latitude and longitude.
+\end{itemize}
+
+When we run the compiled program, we'll need all these inputs to be present.
+
+We want to run this program every 3 hours, on the hour - so there is a repeated dependency on the time or cycle.
+
+We also want to build the program to begin with, so we need a compilation task that runs at the start.
+
+\subsection{Suite Creation}
+
+Create a new directory with a suitable name (e.g. 'navigation\_suite'). This will be our suite top-level directory.
+
+Inside that directory, create a subdirectory called src:
+
+\begin{lstlisting}[mathescape, language=bash]
+$\$$ mkdir src
+\end{lstlisting}
+
+
+Copy the Fortran code into a file called src/dead\_reckoning.f90 (use the link to copy and paste if you can).
+
+We'll also need a suite.rc file - create a suite.rc file within your top-level directory with the following contents:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+[cylc]
+    UTC mode = True # Ignore DST
+[scheduling]
+    initial cycle point = 20160601T00Z  # 1 June 2016
+    final cycle point = 20160603T00Z  # 3 June 2016
+    [[dependencies]]
+        [[[R1]]]  # Run once at the start of the suite.
+            graph = compile_navigate
+[runtime]
+    [[compile_navigate]]
+        script = gfortran $CYLC_SUITE_DEF_DIR/src/dead_reckoning.f90 -o $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+\end{lstlisting}
+
+    We've set the suite to run from midnight, 1 June 2016 to midnight, 3 June 2016. This is just a model time - not anything to do with real time.
+
+    We've set the compile\_navigate task to run once at the initial cycle point (i.e. midnight, 1 June 2013). This will compile the source code and produce an executable in a directory \$HOME/cylc-run/SUITE\_NAME/share/.
+
+    We can test that this works as it is.
+    
+    Create a blank file called 'rose-suite.conf' in the suite directory.
+
+    Now you can run `rose suite-run`. We have already seen how we can do the same thing with cylc, and that cylc will absorb the suite-run functionality in the near future.
+    
+    The compile\_navigate task should succeed, and the suite will shut down automatically. After that, there should be a newly created dead\_reckoning.exe file under \$HOME/cylc-run/SUITE\_NAME/share/. Have a look in that directory.
+
+Let's now add our navigation task to run our executable. Modify the suite.rc to have a dependencies section that looks like this:
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+    [[dependencies]]
+        [[[R1]]]  # Run once at the start of the suite.
+            graph = compile_navigate => navigate
+        [[[PT3H]]]  # Run every 3 hours (ISO 8601 date-time syntax).
+            graph = navigate[-PT3H] => navigate
+\end{lstlisting}
+
+    Here, we've made navigate run every 3 hours, with each instance waiting for the previous one to finish.
+
+    We've configured the dependency between compile\_navigate and navigate.
+
+We also need to tell it what to run! Add a new entry under the runtime section:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+    [[navigate]]
+        script = $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+        [[[environment]]]
+            POSITION_FILEPATH = $CYLC_SUITE_SHARE_PATH/position
+            TIME_INTERVAL_HRS = 3
+\end{lstlisting}
+
+This instructs cylc to run the executable made by compile\_navigate and sets up the necessary environment variables.
+
+However, we need to add something that makes our \$POS\_FPATH position file in the first place.
+
+We'll add a task called write\_start\_position. Add it as a run-once (R1) task by replacing the graph for the [[[R1]]] section with:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+        [[[R1]]]  # Run once at the start of the suite.
+            graph = """
+                compile_navigate => navigate
+                write_start_position => navigate
+            """
+\end{lstlisting}
+
+Finally, add these lines at the end of the suite.rc file:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+    [[write_start_position]]
+        script = echo '50.0 -3.0' > $CYLC_SUITE_SHARE_PATH/position
+\end{lstlisting}
+
+This initialises our location for the navigate app via a file (pointed to via \$POS\_FPATH). Our start coordinates are 50.0 north, 3.0 west, which is in the English Channel (a.k.a. La Manche, Canal da Mancha, etc). You can change these to another location if you like.
+
+Your suite should now look something like this:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+[cylc]
+    UTC mode = True # Ignore DST
+[scheduling]
+    initial cycle point = 20160601T00Z # 1 June 2016
+    final cycle point = 20160603T00Z # 3 June 2016
+    [[dependencies]]
+        [[[R1]]]  # Run once at the start of the suite.
+            graph = """
+                compile_navigate => navigate
+                write_start_position => navigate
+            """
+        [[[PT3H]]]  # Run every 3 hours (ISO 8601 date-time syntax).
+            graph = navigate[-PT3H] => navigate
+[runtime]
+    [[compile_navigate]]
+        script = gfortran $CYLC_SUITE_DEF_PATH/src/dead_reckoning.f90 -o $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+    [[navigate]]
+        script = $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+        [[[environment]]]
+            POSITION_FILEPATH = $CYLC_SUITE_SHARE_PATH/position
+            TIME_INTERVAL_HRS = 3
+    [[write_start_position]]
+        script = echo '50.0 -3.0' > $CYLC_SUITE_SHARE_PATH/position
+\end{lstlisting}
+
+\subsection{Running our Suite}
+
+Run:
+
+\begin{lstlisting}[mathescape, language=bash]
+$\$$ rose suite-run
+\end{lstlisting}
+
+If everything has been set up successfully, after running that command, cylc gui will launch with your running suite.
+
+\subsection{Finished Output}
+
+You can look at the finished output by running:
+
+\begin{lstlisting}[mathescape, language=bash]
+$\$$ rose suite-log
+\end{lstlisting}
+
+The position will be written in the out file for each navigate task.
+
+If you want a quick and easy way of visualising the output, try replacing the line:
+
+\lstset{language=Fortran}
+\begin{lstlisting}[columns=fullflexible]
+PRINT*, "New position, me hearties:",new_lat," ",new_long
+\end{lstlisting}
+
+in dead\_reckoning.f90 with
+
+\lstset{language=Fortran}
+\begin{lstlisting}[columns=fullflexible]
+lat = (180.0/pi) * lat
+long = (180.0/pi) * long
+WRITE(*,'(A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A)') &
+      "<a href='https://maps.googleapis.com/maps/api/staticmap?center=",&
+      lat,",",long,"&zoom=7&size=600x300&markers=color:blue|label:A|",&
+      lat,",",long,"&markers=color:red|label:B|",new_lat,",",new_long,&
+      "''>Ye chart!</a>"
+\end{lstlisting}
+
+You'll now get a useful link in your navigate task output. Expect a wiggly course!
+
+Note: If you are viewing the job log via Rose Bush, try switching on Tags mode by clicking on the Tags at the top right hand corner of the page.
+More Cycling
+
+Our suite has a single cycling period of 3 hours, but we could have other time definitions in the same suite. Let's add a task called take\_sun\_sight that runs at 12 each day. This will correct our latitude.
+
+Add these lines below [[dependencies]] in your suite.rc file:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+        [[[T12]]]
+            graph = navigate => take_sun_sight
+\end{lstlisting}
+
+This will run after the navigate task from that cycle time finishes.
+
+In order to make the navigate task wait for our new take\_sun\_sight task, we'll need to add some extra configuration for the 15 hour cycle - add the following lines in the same way as you did for [[[T12]]]:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+        [[[T15]]]
+            graph = take_sun_sight[-PT3H] => navigate
+\end{lstlisting}
+
+
+\subsection{Adding a Script}
+
+You can put scripts in the bin/ directory of a suite, and they will be added to cylc's path.
+
+Change directory to the root of your suite, and create a bin/ directory.
+
+Create an empty file in the bin/ directory called bin/sun\_sight
+
+Open this file with a text editor. Paste the following text into the sun\_sight file:
+
+\lstset{language=Python}
+\begin{lstlisting}[columns=fullflexible]
+#!/usr/bin/env python
+
+import random
+import sys
+
+
+if __name__ == "__main__":
+    random.seed()
+    with open(sys.argv[1], "r") as f:
+        (lat, long) = f.read().split()
+    lat = float(lat) + random.uniform(-0.05, 0.05)
+    print "Yarr! Our corrected position be {0}, {1}".format(lat, long)
+    with open(sys.argv[1], "w") as f:
+        f.write("{0} {1}\n".format(lat, long))
+\end{lstlisting}
+
+Save the file. Make it executable by running:
+
+\begin{lstlisting}[mathescape, language=bash]
+$\$$ chmod +x bin/sun_sight
+\end{lstlisting}
+
+We need to reference this script explicitly in the suite.rc for our take\_sun\_sight task - append these lines to the suite.rc file:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+    [[take_sun_sight]]
+        script = sun_sight $CYLC_SUITE_SHARE_PATH/position
+\end{lstlisting}
+
+\subsection{Results}
+
+Run the suite by invoking:
+\begin{lstlisting}[mathescape, language=bash]
+$\$$ rose suite-run
+\end{lstlisting}
+
+Our extra task should run at 20130601T1200Z and 20130602T1200Z.
+
+\subsection{Rose (optional - feel free to skip)}
+
+Apart from the rose suite-run functionality (which will soon be absorbed into cylc), Rose can help us manage configuration for our suites and tasks.
+
+Let's pull out our initial starting longitude and latitude into top-level rose-suite.conf Jinja2 template inputs. Jinja2 allows us to effectively script the configuration file when we need to.
+
+Add this line to the top of the suite.rc file:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+#!jinja2
+\end{lstlisting}
+
+and replace:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+    [[write_start_position]]
+        script = echo '50.0 -3.0' > $CYLC_SUITE_SHARE_PATH/position
+\end{lstlisting}
+
+with:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+    [[write_start_position]]
+        script = echo '{{START_LATITUDE}} {{START_LONGITUDE}}' > $CYLC_SUITE_SHARE_PATH/position
+\end{lstlisting}
+
+We can now pull out START\_LATITUDE and START\_LONGITUDE into top-level rose-suite.conf inputs. Change the rose-suite.conf file to read:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+[jinja2:suite.rc]
+START_LATITUDE=50.0
+START_LONGITUDE=-3.0
+\end{lstlisting}
+
+When the suite is run with rose suite-run, these variables will be inserted into the write\_start\_position script and it will run as before.
+
+Rose has a concept of metadata for inputs like these. We can take a shortcut to fill out some of that metadata.
+
+In the top-level directory of your suite, run:
+
+\begin{lstlisting}[mathescape, language=bash]
+$\$$ rose metadata-gen --auto-type
+\end{lstlisting}
+
+It will create a subdirectory called meta with a file called rose-meta.conf inside. Open that file and edit it to add some description and allowed value ranges:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+[jinja2:suite.rc]
+title=Starting Position
+
+[jinja2:suite.rc=START_LATITUDE]
+compulsory=true
+description=Starting latitude in degrees
+range=-90:90
+type=real
+
+[jinja2:suite.rc=START_LONGITUDE]
+compulsory=true
+description=Starting longitude in degrees
+range=-180:180
+type=real
+\end{lstlisting}
+ 
+Now run `rose edit` - this launches a nice GUI interface to our inputs which will check for errors. Try e.g altering the longitude to 300 degrees. An error should display.
+
+You can run the suite directly through `rose edit` via the 'Play' button in the toolbar.
+
+We can also add configuration for our Fortran program via a Rose app configuration. Alter the `navigate` task `script` in the suite.rc file to read:
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+    [[navigate]]
+        script = rose task-run -v
+\end{lstlisting}
+
+Create an app/navigate/ subdirectory in your suite:
+
+\begin{lstlisting}[mathescape, language=bash]
+$\$$ mkdir -p app/navigate/
+\end{lstlisting}
+
+Create a file underneath that directory called rose-app.conf (app/navigate/rose-app.conf). Alter that file to read:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+[command]
+default=$CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+
+[env]
+POSITION_FILEPATH=$CYLC_SUITE_SHARE_PATH/position
+TIME_INTERVAL_HRS = 3
+\end{lstlisting}
+
+and create a further meta subdirectory for some app metadata:
+
+\begin{lstlisting}[mathescape, language=bash]
+$\$$ mkdir -p app/navigate/meta
+\end{lstlisting}
+
+Inside that new directory, create a rose-meta.conf file (app/navigate/meta/rose-meta.conf) that looks like this:
+
+\lstset{language=suiterc}
+\begin{lstlisting}[columns=fullflexible]
+[env=TIME_INTERVAL_HRS]
+range=1:24
+type=integer
+\end{lstlisting}
+
+If you save these files and then launch `rose edit`, you should see configuration appear for the navigate app. As we have declared TIME\_INTERVAL\_HRS to be an integer, it should have a numeric widget. It should display an error if the value is less than 1 or greater than 24.
+
+This is only a limited subset of the functionality that the metadata can provide - there is also inter-variable triggering, a Pythonic mini-language, dynamic page assignment, and much more. See the Rose documentation for more details.

@@ -1,0 +1,66 @@
+% ---- PREAMBLE ----
+% layout
+\documentclass{article}
+\usepackage[margin=3cm, headheight=1cm]{geometry}
+
+% Font stuff.
+\renewcommand{\familydefault}{\sfdefault}  % sanz-serif
+\usepackage{parskip}  % regular paragraph separation
+
+
+% Imports.
+\usepackage[usenames]{color}
+\usepackage{graphicx}
+\usepackage{listings}
+  \usepackage{courier}
+\usepackage{hyperref}
+
+% Hyperlinks.
+\definecolor{links}{rgb}{0.1,0.1,0.6}
+\hypersetup{colorlinks=true, linkcolor=links, urlcolor=links}
+\urlstyle{same}
+
+% Headers / Footers.
+\usepackage{fancyhdr}
+\lhead{Cylc Lisbon Tutorial Draft}  % TODO: hardcoded !!!
+\rhead{\includegraphics[width=0.15\textwidth]{resources/tex/cylc-logo}}
+\pagestyle{fancy}
+
+% Code listings: default style.
+\definecolor{keywords}{rgb}{0.8,0.4,0.0}
+\definecolor{comments}{rgb}{1.0,0.2,0.3}
+\definecolor{identifiers}{rgb}{0.3,0.4,0.5}
+\definecolor{strings}{rgb}{0.2,0.5,0.3}
+\definecolor{basic}{rgb}{0.3,0.4,0.5}
+\definecolor{command}{rgb}{0.0,0.2,0.1}
+\definecolor{transcr}{rgb}{0.0,0.2,0.4}
+\newcommand\mysmall{\fontsize{9}{9.2}\selectfont}
+\lstset{
+basicstyle=\color{basic}\mysmall\ttfamily,
+identifierstyle=\color{identifiers},
+keywordstyle=\color{keywords},
+commentstyle=\color{comments},
+stringstyle=\color{strings},
+showstringspaces=false,
+}
+
+% Code listings: suite.rc language support.
+\definecolor{level1}{rgb}{0.0,0.2,0.6}
+\definecolor{level2}{rgb}{0.0,0.3,0.7}
+\definecolor{level3}{rgb}{0.0,0.4,0.8}
+\definecolor{jinja2}{rgb}{0.1,0.7,0.4}
+\lstdefinelanguage{suiterc}
+{
+string=[b]{"},
+sensitive=true,
+comment=[l]{\#},
+morecomment=[s][\color{level1}]{[}{]},
+morecomment=[s][\color{level2}]{[[}{]]},
+morecomment=[s][\color{level3}]{[[[}{]]]},
+morecomment=[s][\color{jinja2}]{\{\%}{\%\}},
+morecomment=[s][\color{jinja2}]{\{\{}{\}\}},
+}
+
+% Note sections:
+\definecolor{note}{rgb}{0.6,0.6,0.6}
+\newcommand{\note}[1]{{\color{note}\textbf{Note:} \textit{#1}}}

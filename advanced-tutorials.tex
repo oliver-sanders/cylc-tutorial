@@ -1,0 +1,274 @@
+\section{Advanced Tutorials}
+
+This section outlines some of the more advanced features of cylc along with
+links to tutorials on these features on the rose documentation website.
+
+
+\subsection{Advanced Cycling}
+\label{advanced-cycling}
+
+So far we have defined cycling using graph section headings of the form
+\lstinline{[[[TXX]]]} as in the following example:
+
+\begin{lstlisting}
+[scheduling]
+    initial cycle point = 2000-01-01T00
+    [[dependencies]]
+        [[[T00]]]  # Run every day at 00:00
+            graph = foo => bar
+\end{lstlisting}
+
+This is the simplest form of graph section heading, more powerful forms exist
+to help define complex recursions.
+
+\paragraph*{Examples} $ $
+
+\begin{tabular}{l l}
+\begin{lstlisting}
+[[[ T06, T1845 ]]]
+\end{lstlisting}
+& Run every day at 06:00 and 18:45\\
+\begin{lstlisting}
+[[[ 01T00 ]]]
+\end{lstlisting}
+& Run every month on the first of the month \\
+\begin{lstlisting}
+[[[ PT15M ]]]
+\end{lstlisting}
+& Run every 5 minutes \\
+\begin{lstlisting}
+[[[ +P5D/P1M ]]]
+\end{lstlisting}
+& Run every month, starting 5 days after the initial cycle point \\
+\begin{lstlisting}
+[[[ R3/T06 ]]]
+\end{lstlisting}
+& Run three times, once every day at 06:00
+\\
+\end{tabular}
+
+\paragraph*{Tutorial}
+
+TODO: Link to cylc documentation once next version has gone live
+
+
+\subsection{Advanced Dependencies}
+
+The \& symbol can be used to condense multiple graph lines, for instance the
+following example:
+
+\begin{lstlisting}
+graph = """
+    foo => bar
+    foo => baz
+"""
+\end{lstlisting}
+
+... can be condensed to \lstinline{graph = foo => bar & baz}.
+Graph lines can also be written with the \textbar \, symbol meaning or, for
+example in the following example \lstinline{baz} will run as soon as either
+\lstinline{foo} or \lstinline{bar} succeed.
+
+\begin{lstlisting}
+graph = foo | bar => baz
+\end{lstlisting}
+
+Up until now we have written dependencies in the form \lstinline{foo => bar}
+which means \lstinline{bar} will trigger (run) as soon as \lstinline{foo}
+succeeds. It is possible to trigger tasks off of other states e.g:
+
+\begin{tabular}{ll}
+\lstinline[mathescape]=foo:fail $=$> bar= &
+\lstinline=bar= triggers if \lstinline=foo= fails \\
+\lstinline[mathescape]=foo:submit $=$> bar= &
+\lstinline=bar= triggers once \lstinline=foo= has submitted \\
+\lstinline[mathescape]=foo:start $=$> bar= &
+\lstinline=bar= triggers once \lstinline=foo= starts executing \\
+\lstinline[mathescape]=foo:finish $=$> bar= &
+\lstinline=bar= triggers once \lstinline=foo= succeeds or fails \\
+\end{tabular}
+
+
+\subsection{Families}
+
+Often a suite will contain a collection of similar tasks. With cylc these
+tasks can be grouped together for convenience.
+
+\paragraph*{Example}
+In the following example the
+task \lstinline{hello_eris} inherits the \lstinline{script} setting and
+\lstinline{IS_WORLD_A_PLANET} environment variable from the family
+\lstinline{HELLO_FAIMILY}. The task \lstinline{hello_pluto} on the other hand
+inherits the \lstinline{script} setting but overrides the
+\lstinline{IS_WORLD_A_PLANET} environment variable.
+
+\begin{lstlisting}
+[scheduling]
+    [[dependencies]]
+        graph = HELLO_FAMILY  # Runs all tasks that inherit from HELLO_FAMILY.
+[runtime]
+    [[HELLO_FAMILY]]  # A family.
+        script = echo $IS_WORLD_A_PLANET
+        [[[environment]]]
+            IS_WORLD_A_PLANET = false # Environment variable shared with tasks
+                                      # that inherit from this family.
+    [[hello_eris]]
+        inherit = HELLO_FAMILY
+    [[hello_pluto]]
+        inherit = HELLO_FAMILY
+        [[[environment]]]
+            IS_WORLD_A_PLANET = true  # Overrides the inherited environment
+                                      # variable.
+\end{lstlisting}
+
+\paragraph*{Tutorial}
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-family-trigs.html}.
+
+
+\subsection{Retries}
+Sometimes tasks fail, you can tell cylc to automatically retry failed tasks.
+
+\paragraph*{Example} $ $
+
+\begin{lstlisting}
+[runtime]
+    [[task]]
+        retry delays = 5*PT10S  # Retry up to 5 times waiting 10 seconds before
+                                # each retry.
+\end{lstlisting}
+
+\paragraph*{Tutorial}
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-retries.html}
+.
+
+
+\subsection{Jinja2}
+
+With jinja2 you can set variables and use them throughout your suite.rc file.
+
+\paragraph{Example} $ $
+
+\begin{lstlisting}
+#!jinja2
+{% set task_number = 5 -%}
+[scheduling]
+    [[dependencies]]
+        graph = """
+            {% for task in range(task_number - 1) -%}
+                task_{{task}} => task_{{task + 1}}
+            {% endfor -%}
+        """
+[runtime]
+{% for task in range(task_number) -%}
+[[task_{{task}}]]
+    script = echo $TASK_NUMBER
+    [[[environment]]]
+        TASK_NUMBER = {{task}}
+{% endfor -%}
+\end{lstlisting}
+
+\paragraph*{Tutorial}
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-jinja2.html}
+
+
+\subsection{Cylc Broadcast}
+
+\lstinline[language=bash]{cylc broadcast} is a command line utility that can
+be used to change any setting contained within the \lstinline{[runtime]}
+section of a suite.rc file whilst the suite is running.
+
+\paragraph*{Example} The following line of bash script will set the remote
+host for the task \lstinline{task_name}.
+
+\begin{lstlisting}[language=bash]
+$ cylc broadcast <suite_name> -n <task_name> -s [remote]host=<host_name>
+\end{lstlisting}
+
+\paragraph*{Tutorial}
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-broadcast.html}
+
+
+\subsection{Suicide Triggers}
+
+Suicide triggers can be used to remove tasks from a suite's graph during
+runtime.
+
+\paragraph*{Example}
+
+The task \lstinline{recover_from_failure} will be removed from the graph if
+the task \lstinline{task} succeeds.
+
+\begin{lstlisting}
+[scheduling]
+    [[dependencies]]
+        graph = """
+            task:fail => recover_from_failure  # Run recover_from_failure if
+                                               # task fails.
+            task => !recover_from_failure      # Don't run if task succeeds.
+        """
+\end{lstlisting}
+
+\paragraph*{Tutorial}
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-suicide.html}
+
+
+\subsection{Queues}
+
+Queues can be used to limit the number of certain tasks that are submitted or
+run at any given time.
+
+\paragraph*{Example}
+
+In this example all \lstinline{foo}, \lstinline{bar} and \lstinline{baz} tasks
+will go to the \lstinline{task_queue} queue. This queue will only allow two
+tasks to run at a time.
+
+\begin{lstlisting}
+[scheduling]
+    [[queues]]
+        [[[task_queue]]]
+            limit = 2
+            members = foo, bar, baz
+\end{lstlisting}
+
+\paragraph*{Tutorial}
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-queues.html}
+
+
+\subsection{Clock Triggered Tasks}
+\label{clock-triggered-tasks}
+
+Sometimes tasks should wait until a certain time before running, in cylc this
+is possible using ''clock triggering``.
+
+\paragraph*{Example} $ $
+
+\begin{lstlisting}
+[scheduling]
+    [[dependencies]]
+        [[[T00]]]
+            graph = daily_task
+    [[special tasks]]
+        clock-triggered = daily_task(PT0H)  # Run daily_task with 0 hours
+                                            # offset from the cycle point.
+\end{lstlisting}
+
+\paragraph*{Tutorial}
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-clock-triggered.html}.
+
+
+\subsection{Remote Hosts}
+
+Cylc can run tasks on different machines.
+
+\paragraph*{Example} $ $
+
+\begin{lstlisting}
+[runtime]
+    [[task]]
+        [[[remote]]]
+            host = host_name
+\end{lstlisting}
+
+\paragraph*{Tutorial}
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-remotes.html}
