@@ -3,74 +3,65 @@
 
 \subsection{The suite.rc File}
 
-A cylc suite is a collection of files located within a directory called the
-suite directory. The suite is configured by a single suite.rc file.
-The suite.rc file uses a nested INI based format where sections are denoted
-by square brackets, sub-sections by double square brackets and
-sub-sub-sections by triple square brackets.
+A cylc suite is a collection of files in a {\em suite directory} configured by
+a single {\em suite.rc} file, which is written in a nested INI format with
+section and sub-section headings denoted by square brackets.
 
 \begin{lstlisting}[language=suiterc]
 [section]
-    [[subsection]]
+    option = value
+    [[sub-section]]
         option = value
+        [[[sub-sub-section]]]
+            option = value
 \end{lstlisting}
 
-There are five top level sections that can be present in a suite.rc file. The
-three main ones are:
+The most important top level sections in a suite.rc file are:
 
 \begin{tabular}{ll}
 \begin{lstlisting}
 [cylc]
-\end{lstlisting} & Used for suite-level configuration. \\
+\end{lstlisting} & various suite-level configuration\\
 \begin{lstlisting}
 [scheduling]
-\end{lstlisting} & Defines the logic of the suite enabling cylc to determine
-when tasks are ready to run. \\
+\end{lstlisting} & determines when tasks are ready to run (dependencies etc.)\\
 \begin{lstlisting}
 [runtime]
-\end{lstlisting} & Defines the tasks themselves, what to execute, where and
-how. \\
+\end{lstlisting} & defines {\em what} to run when a task is ready, and
+where and how to run it \\
 \end{tabular}
 
 
 \subsection{Hello World in cylc}
 
-The simplest working example of a cylc suite is given below. This suite
-contains a single task named \lstinline{hello_world} which waits 5 seconds
-then outputs the text ``Hello World!'' to standard out. The task is defined in
-in the \lstinline=[runtime]= section and cylc is told to run the task by the
-\lstinline{graph = hello_world} part.
+This suite runs a single task named \lstinline{hello} that prints ``Hello
+World!'' to standard out and then sleeps for 30 seconds before exiting.
 
-\begin{lstlisting}[language=suiterc, title=hello world example]
+% Call task "hello" to distinguish task name from suite name.
+% Sleep for 30 seconds - long enough to be seen in the GUI.
+
+\begin{lstlisting}[language=suiterc]
 [scheduling]
     [[dependencies]]
-        graph = hello_world
+        graph = hello
 [runtime]
-    [[hello_world]]
-        script = sleep 5; echo "Hello World!"
+    [[hello]]
+        script = echo "Hello World!"; sleep 30
 \end{lstlisting}
 
-To run a new suite there are three things that must be done:
+The \lstinline{[scheduling]} section tells cylc to run the hello task
+immediately on start-up (because it does not depend on other tasks and has no
+clock triggers).  The \lstinline=[runtime]= section configures cylc to 
+run the inlined ``Hello World!'' shell scripting for the task (as a background
+job on the suite host, by default).  Section~\ref{Tasks} below explains how
+this works.
 
-\begin{enumerate}
-    \item The suite must be registered with cylc
-    \item (optionally) the suite can be validated to ensure there are no errors
-            in the suite.rc file.
-    \item Finally, we can run the suite.
-\end{enumerate}
+\more{This isn't quite the simplest possible cylc suite. You can omit the runtime
+configuration for a task and cylc will automatically create a minimal dummy job
+for it. This can be useful for mocking up suites, and temporarily "dummying
+out" real tasks}.
 
-To do this we can use the \lstinline[language=bash]{rose suite-run} command.
-This command requires a rose-suite.conf file which should sit alongside the
-suite.rc. The rose-suite.conf file can be empty.
-
-\begin{lstlisting}[language=bash]
-$ touch rose-suite.conf
-$ rose suite-run
-\end{lstlisting}
-
-For this tutorial we will be using the \lstinline{rose suite-run} command
-though these three steps can be undertaken without using rose using the
-following cylc commands.
+Here's how to run a new suite (don't do this yet; see below):
 
 \begin{lstlisting}[language=bash]
 $ cylc register hello_world /path/to/suite/
@@ -78,77 +69,206 @@ $ cylc validate hello_world
 $ cylc run hello_world
 \end{lstlisting}
 
+\more{
+    \begin{itemize}
+        \item
+    \lstinline{cylc-register} just associates a name with a suite definition.
+    Commands that parse a suite can refer to this suite name or the file path;
+    commands that connect to a suite daemon must refer to the suite name.
+
+        \item
+    \lstinline{cylc validate} checks for errors in the suite.rc file.
+
+        \item
+    \lstinline{cylc run} starts a server program to manage your workflow. It
+    {\em daemonizes} (by default) and will stay alive if you log out. If your
+    suite runs to completion, it will automatically shut down.
+    \end{itemize}
+}
+
+\textcolor{red}{For this tutorial, however, we will be using the
+\lstinline{rose suite-run} command to run suites}.  It automatically installs,
+registers, validates, starts the suite, and opens the cylc GUI.  Rose
+is installed on your metomi VM. 
+
+\more{ \lstinline{rose suite-run} will soon be migrated into cylc.  It is a
+    convenient short-cut command, but more importantly it {\em installs} the
+    suite into its run directory and registers it there.  This separates the
+    live suite from its source, and provides an opportunity to install external
+files into the suite at start-up.  }
+
 \paragraph*{Demo}
-To run the hello world example, create a directory called hello\_world. This
-will be our suite directory.
-
-Next copy the ``hello world example'' code into a suite.rc file within that
-directory.
-
-Finally run the following commands:
+Copy the ``hello world example'' into a suite.rc file in a directory called
+hello\_world, and run the following commands:
 
 \begin{lstlisting}[language=bash]
-$ cd hello_world  # move to the suite directory
+$ cd hello_world
 $ touch rose-suite.conf  # create an empty rose-suite.conf file
 $ rose suite-run  # run the suite
 \end{lstlisting}
 
-If successful cylc will generate some output then a window will open. This is
-the cylc monitoring and control tool which displays the current status of
-your suite. In the cylc gui you should briefly see the task
-\lstinline{hello_world}
-displayed with a coloured square next to it. The colour of the square
-represents the state of the task
-(for example green means the task is running and gray that it has succeeded).
-Once the hello\_world task has succeeded, having no more tasks to run the suite
-will automatically shut down.
+If successful cylc will generate some output and open the cylc monitoring and
+control GUI, which displays the current status of your suite. You should
+briefly see the task \lstinline{hello_world} displayed with a coloured square
+that represents its state. For example green means the task is running and gray
+that it has succeeded.  Once the task has succeeded, the suite has no more
+tasks to run and will automatically shut down.
 
+The task job script and its standard out and standard error are captured to
+a standard log directory location:
+\begin{lstlisting}[language=bash]
+$ ls -1 $HOME/cylc-run/hello_world/log/job/1/hello/01/
+job
+job.out
+job.err
+job.status
+job-activity.log
+\end{lstlisting}
+
+\more{The directory path contains the suite name (hello\_world), log type
+    ({\em job} or {\em suite}), task cycle point (1 for a non-cycling
+    suite), task name (hello), and task submit number (01). This avoids
+    unmanagably large flat log directories, and job logs don't get
+overwritten even if tasks are resubmitted.}
+
+While a task is still visible in the GUI you can right-click on it to view its
+log files.  After that, look in its log directory,
+
+\begin{lstlisting}[language=bash]
+$ cd $HOME/cylc-run/hello_world/log/job/1/hello/01/
+$ cat job.out
+\end{lstlisting}
+
+or use the \lstinline{cylc cat-log} command (which knows the file's location),
+
+\begin{lstlisting}[language=bash]
+$ cylc cat-log --help  # see "cylc --help" for top level command help
+$ cylc cat-log --stdout hello_world hello.1
+...
+Hello World!
+...
+\end{lstlisting}
+
+or use the fantastic \lstinline{rose suite-log} web suite log file viewer.
+
+\begin{lstlisting}[language=bash]
+$ cd hello_world
+$ rose suite-log
+\end{lstlisting}
+
+\more{
+    The \lstinline{rose suite-log} viewer will also be migrated to the cylc
+    project soon.
+}
 
 \subsection{Tasks}
+\label{Tasks}
 
-To convert a script into a cylc task the script should be placed inside a
-`bin` directory alongside the suite.rc file in the suite directory.
+Any program or script can be used as a cylc task without modification so long as,
+\begin{itemize}
+    \item it waits on any internal processes before returning (e.g.\ jobs
+        submitted internally to a batch scheduler)
+    \item it returns standard shell exit status: zero for success, non-zero
+        for error (use \lstinline{set -e} in scripts)
+\end{itemize}
 
-\begin{lstlisting}[language=]
-suite-directory/
-|-- bin/
-|   `-- get-host-details
-`-- suite.rc
+\more{Cylc automatically wraps jobs in scripting that traps errors, directs
+    job standard output and error to log files, and automatically communicates
+    progress to the parent suite daemon. These {\em job scripts} can be found
+in the task job log directory.}
+
+A task job can run shell scripting inlined in the suite.rc file, or an
+external program or script, or any combination of the two.  A suite
+sub-directory called \lstinline{bin} is automatically added to your shell
+\lstinline{$PATH} so that scripts residing in it can be called by name,
+
+% changed original script name 'get-host-details' - users may wonder if host
+% details are somehow communicated back to the suite.
+\begin{lstlisting}[language=suiterc]
+[runtime]
+    [[model]]
+        script = run-model
 \end{lstlisting}
 
-The script can then be referenced in the suite.rc file e.g.:
+Alternatively, you can use a specify a full path,
 
 \begin{lstlisting}[language=suiterc]
-[scheduling]
-    [[get_info]]
-        script = get-host-details
+[runtime]
+    [[model]]
+        script = /path/to/my-scripts/run-model
 \end{lstlisting}
 
-In the task definition it is possible to determine what the task will run, as
-well as where and how the task will run. For example by adding a
-\lstinline=[[[remote]]]= section to the task definition it is possible to
-specify the host that will run the command e.g.:
+or you can configure \lstinline{$PATH} in the task's environment,
+\begin{lstlisting}[language=suiterc]
+[runtime]
+    [[model]]
+        script = run-model
+        [[[environment]]]
+            PATH = /path/to/my-scripts:$PATH
+\end{lstlisting}
+
+\more{The last method makes more sense if there are multiple task scripts in
+    the same location, then you can set \lstinline{$PATH} once in a {\em
+    family} (see below) inherited by all the tasks
+that need those scripts.}
+
+An optional \lstinline=[[[remote]]]= sub-section determines {\em where} a task
+will run (defaults to localhost), 
 
 \begin{lstlisting}[language=suiterc]
-[scheduling]
-    [[get_info]]
-        script = get-host-details
+[runtime]
+    [[model]]
+        script = run-model
         [[[remote]]]
             host = supercomputer
 \end{lstlisting}
 
-It is also possible to pass information to the script, for instance in the
-following example the script ``get-host-details'' is provided with the
-environment variable ``FOO'' set to ``bar''.
+\more{Cylc doesn't install files to remote hosts for you.  If a task host does
+    not share a filesystem with the suite host, make sure you install any files
+    needed by the tasks that run there.  Rose (\ref{Rose}) can help automate
+file installation.}
 
+An optional \lstinline=[[[job]]]= sub-section determines {\em how} to run the
+task (default to a shell "background" subprocess).
 \begin{lstlisting}[language=suiterc]
-[scheduling]
-    [[get_info]]
-        script = get-host-details
-        [[[environment]]]
-            FOO = bar
+[runtime]
+    [[model]]
+        script = run-model
+        [[[remote]]]
+            host = supercomputer
+        [[[job]]]
+            batch system = pbs
 \end{lstlisting}
 
+\more{Cylc can submit jobs to various batch systems such as PBS and SLURM. With
+    these you generally have to use a \lstinline=[[[directives]]]=
+    section too, to set the queue, wall clock limit, and so on.}
+
+You can pass information to a script via its command line or environment,
+
+\begin{lstlisting}[language=suiterc]
+[runtime]
+    [[model]]
+        script = run-model --color=green
+        [[[environment]]]
+            START_TIME = $CYLC_TASK_CYCLE_POINT
+\end{lstlisting}
+
+For anything more complicated use custom scripting as you like (or an external
+wrapper script),
+\begin{lstlisting}[language=suiterc]
+[runtime]
+    [[model]]
+        script = """
+cat > model-input.txt <<__EOF__
+COLOR=GREEN
+START_TIME=$CYLC_TASK_CYCLE_POINT
+__EOF__
+run-model model-input.txt"""
+\end{lstlisting}
+
+Note that multi-line strings in the suite.rc file must be enclosed in triple
+quotes.
 
 \subsection{Graphs}
 

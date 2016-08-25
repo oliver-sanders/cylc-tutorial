@@ -56,8 +56,8 @@ have not yet finished.
 
 Traditional fixed-cycling schedulers can not do this; they ignore inter-cycle
 dependence and always have to run complete cycles
-sequentially.\footnote{Although they sometimes mitigate this problem by
-statically defining multiple steps or ``chunks'' within each fixed cycle.} Cylc
+sequentially.\footnote{Although some mitigate this problem by statically
+defining multiple steps or ``chunks'' within a longer fixed cycle.} Cylc
 treats all dependence equally and manages the cycling of each task
 individually, creating a single continuous workflow with no cycle boundaries.
 Each task can submit when its own inputs are satisfied, regardless
