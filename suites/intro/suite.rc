@@ -1,0 +1,11 @@
+[scheduling]
+    cycling mode = integer
+    initial cycle point = 1
+    [[dependencies]]
+        [[[P1]]]
+            graph = """
+                foo => bar => baz & qux => pin
+                wol
+                """
+[visualization]
+    number of cycle points = 3

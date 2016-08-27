@@ -1,0 +1,44 @@
+\section{Tutorial Scope}
+
+This is intended to be a one-day hands-on tutorial for new cylc users.
+
+Automating large distributed workflows of cycling tasks in research and
+operational environments can be a complex business, and consequently the full
+cylc user guide may look somewhat intimidating to new users.  Ease of use
+has always been a primary goal of the project, however.  We have endeavored to
+keep to the basics and convey this simplicity in the tutorial. Those who want
+to know more can refer to supplementary material provided in the Appendices,
+and other cylc documentation:
+
+\begin{itemize}
+    \item \url{http://cylc.github.io/cylc}
+\end{itemize}
+
+Cylc terminology will be highlighted and defined as needed, like this:
+
+\terminology{A \underline{task} represents a \underline{job} (a
+script or program) that runs on a computer.}
+
+\subsection{A Note On Rose}
+
+Rose is an open source system for suite (workflow) management, designed for use
+with cylc.
+\begin{itemize}
+     \item \url{http://metomi.github.io/rose}
+\end{itemize}
+ 
+It is installed on your metomi VM if want to try it.  Rose functionality
+includes:
+\begin{itemize}
+    \item Suite storage, discovery, and revision control.  This enables sharing
+        and collaborative development of suites across the Unified Model
+        Consortium.
+    \item Generic configuration, and metadata-driven configuration editing, of
+        suites and tasks, including large scientific models.
+    \item Various utilities for use with cylc suites.
+\end{itemize}
+
+The last bullet point includes some programs that will soon be migrated into
+the cylc project.  We will be using two of these, pre-migration, in this
+tutorial: \lstinline{rose suite-run} - a better way of running cylc suites; and
+\lstinline{rose bush} - a sophisticated web-based suite log viewer.
