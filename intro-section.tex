@@ -1,269 +1,357 @@
 \section{Cylc Introduction}
+\label{Cylc Introduction}
 
+\note{For more information on the topics of this section, see Appendix~\ref{Appendix
+Cylc Introduction} and the Cylc User Guide.}
 
 \subsection{The suite.rc File}
 
-A cylc suite is a collection of files located within a directory called the
-suite directory. The suite is configured by a single suite.rc file.
-The suite.rc file uses a nested INI based format where sections are denoted
-by square brackets, sub-sections by double square brackets and
-sub-sub-sections by triple square brackets.
+A cylc suite is a collection of files in a {\em suite directory} configured by
+a single {\em suite.rc} file, which is written in a nested INI format with
+section and sub-section (etc.) headings denoted by square brackets.
 
 \begin{lstlisting}[language=suiterc]
 [section]
-    [[subsection]]
+    option = value
+    [[sub-section]]
         option = value
 \end{lstlisting}
 
-There are five top level sections that can be present in a suite.rc file. The
-three main ones are:
+The most important top level sections in a suite.rc file are:
 
 \begin{tabular}{ll}
 \begin{lstlisting}
 [cylc]
-\end{lstlisting} & Used for suite-level configuration. \\
+\end{lstlisting} & various suite-level settings\\
 \begin{lstlisting}
 [scheduling]
-\end{lstlisting} & Defines the logic of the suite enabling cylc to determine
-when tasks are ready to run. \\
+\end{lstlisting} & determines {\em when} tasks are ready to run (e.g.\ dependencies)\\
 \begin{lstlisting}
 [runtime]
-\end{lstlisting} & Defines the tasks themselves, what to execute, where and
-how. \\
+\end{lstlisting} & defines {\em what} to run when a task is ready, and
+{\em where} and {\em how} to run it \\
 \end{tabular}
 
 
 \subsection{Hello World in cylc}
 
-The simplest working example of a cylc suite is given below. This suite
-contains a single task named \lstinline{hello_world} which waits 5 seconds
-then outputs the text ``Hello World!'' to standard out. The task is defined in
-in the \lstinline=[runtime]= section and cylc is told to run the task by the
-\lstinline{graph = hello_world} part.
+This suite runs a single task named \lstinline{hello} that prints ``Hello
+World!'', sleeps for a few seconds, then exits:
 
-\begin{lstlisting}[language=suiterc, title=hello world example]
+% Call task just "hello" to distinguish the task name from the suite name.
+% Sleep for 30 seconds - long enough to be seen in the GUI.
+
+\begin{lstlisting}[language=suiterc]
 [scheduling]
     [[dependencies]]
-        graph = hello_world
+        graph = hello
 [runtime]
-    [[hello_world]]
-        script = sleep 5; echo "Hello World!"
+    [[hello]]
+        script = echo "Hello World!"; sleep 30
 \end{lstlisting}
 
-To run a new suite there are three things that must be done:
+The \lstinline{[scheduling]} section says to run the hello task immediately on
+start-up, because it doesn't depend anything else; and the
+\lstinline=[runtime]= section says that the task should run the given inlined
+shell scripting.
 
-\begin{enumerate}
-    \item The suite must be registered with cylc
-    \item (optionally) the suite can be validated to ensure there are no errors
-            in the suite.rc file.
-    \item Finally, we can run the suite.
-\end{enumerate}
-
-To do this we can use the \lstinline[language=bash]{rose suite-run} command.
-This command requires a rose-suite.conf file which should sit alongside the
-suite.rc. The rose-suite.conf file can be empty.
+You can run a new cylc suite like this (but don't do it just yet):
 
 \begin{lstlisting}[language=bash]
-$ touch rose-suite.conf
-$ rose suite-run
+$ cylc register hello_world /path/to/suite/  # register suite name "hello_world"
+$ cylc validate hello_world  # check for configuration errors
+$ cylc run hello_world  # run the suite
+$ cylc gui hello_world &  # open a suite control GUI
 \end{lstlisting}
 
-For this tutorial we will be using the \lstinline{rose suite-run} command
-though these three steps can be undertaken without using rose using the
-following cylc commands.
+In this tutorial however, we will be using the \lstinline{rose suite-run},
+command to run suites.  It automatically installs, registers, validates, starts
+the suite with \lstinline=cylc run=, and opens the cylc GUI.
 
-\begin{lstlisting}[language=bash]
-$ cylc register hello_world /path/to/suite/
-$ cylc validate hello_world
-$ cylc run hello_world
-\end{lstlisting}
+The \lstinline{cylc run} command starts a new {\em suite daemon} to run your
+suite.  It will stay alive even if you log out, until your suite runs to
+completion or you tell it to shut down.
+
+\terminology{A cylc \underline{suite daemon} is a light-weight server program
+dedicated to managing a single workflow.}
 
 \paragraph*{Demo}
-To run the hello world example, create a directory called hello\_world. This
-will be our suite directory.
-
-Next copy the ``hello world example'' code into a suite.rc file within that
-directory.
-
-Finally run the following commands:
+Copy the Hello World example code into a suite.rc file in a directory called
+hello\_world, and run the following commands:
 
 \begin{lstlisting}[language=bash]
 $ cd hello_world  # move to the suite directory
 $ touch rose-suite.conf  # create an empty rose-suite.conf file
-$ rose suite-run  # run the suite
+$ rose suite-run  # install, register, validate, run the suite, and open the GUI
 \end{lstlisting}
 
-If successful cylc will generate some output then a window will open. This is
-the cylc monitoring and control tool which displays the current status of
-your suite. In the cylc gui you should briefly see the task
-\lstinline{hello_world}
-displayed with a coloured square next to it. The colour of the square
-represents the state of the task
-(for example green means the task is running and gray that it has succeeded).
-Once the hello\_world task has succeeded, having no more tasks to run the suite
-will automatically shut down.
+If no errors are found in the suite.rc file your suite will start up and a
+GUI window will appear showing the \lstinline{hello} task with a coloured
+square representing its state. For example, green means `running' and gray
+`succeeded'.  Once the task has succeeded, the suite has no more tasks to run
+and will shut down.
 
+Note that ``Hello World!'' is not printed to the terminal. It is printed by 
+the \lstinline=hello= task, which is launched by the suite daemon as a separate
+process (potentially on another machine, although not in this case).
 
-\subsection{Tasks}
+\terminology{A task \underline{job script} is a shell script generated by cylc
+    to run a task as defined in the suite.rc file.}
 
-To convert a script into a cylc task the script should be placed inside a
-`bin` directory alongside the suite.rc file in the suite directory.
+The job script and its output are written to a standard job log directory:
 
-\begin{lstlisting}[language=]
-suite-directory/
-|-- bin/
-|   `-- get-host-details
-`-- suite.rc
+\begin{lstlisting}[language=bash]
+$ ls -1 $HOME/cylc-run/hello_world/log/job/1/hello/01/
+job  # task job script
+job.out  # task standard out
+job.err  # task standard error
+job.status
+job-activity.log
 \end{lstlisting}
 
-The script can then be referenced in the suite.rc file e.g.:
+The task job logs are automatically retrieved to the suite host, if the task
+runs on another machine.
+
+While a task is visible in the GUI, right-click on it to view its log files.
+After that, look in its log directory,
+
+\begin{lstlisting}[language=bash]
+$ cd $HOME/cylc-run/hello_world/log/job/1/hello/01/
+$ cat job.out
+...
+Hello World!
+...
+\end{lstlisting}
+
+or use the \lstinline{cylc cat-log} command,
+
+\begin{lstlisting}[language=bash]
+$ cylc cat-log --help  # see "cylc --help" for top level command help
+$ cylc cat-log --stdout hello_world hello.1
+...
+Hello World!
+...
+\end{lstlisting}
+
+or use the \lstinline{rose suite-log} web-based suite log file viewer.
+
+\begin{lstlisting}[language=bash]
+$ cd hello_world
+$ rose suite-log
+# (now view suite and job logs in your web browser)
+\end{lstlisting}
+
+\subsection{Defining Tasks}
+
+You can have a task run an external program or script, or shell scripting
+inlined in the suite.rc file, or any combination of the two.  A suite
+\lstinline{bin} directory is automatically added to your shell
+\lstinline{$PATH} so that scripts residing in it can be called by name,
+
+% changed original script name 'get-host-details' - users may wonder if host
+% details are somehow communicated back to the suite.
+\begin{lstlisting}[language=suiterc]
+[runtime]
+    [[model]]
+        script = run-model  # in <suite-dir>/bin/ (or elsewhere in $PATH)
+\end{lstlisting}
+
+or use a full file path,
 
 \begin{lstlisting}[language=suiterc]
-[scheduling]
-    [[get_info]]
-        script = get-host-details
+[runtime]
+    [[model]]
+        script = /path/to/my-scripts/run-model
 \end{lstlisting}
 
-In the task definition it is possible to determine what the task will run, as
-well as where and how the task will run. For example by adding a
-\lstinline=[[[remote]]]= section to the task definition it is possible to
-specify the host that will run the command e.g.:
+or set \lstinline{$PATH} in the task environment (this makes more sense
+if the environment is inherited by multiple tasks - see
+Section~\ref{Families}),
+\begin{lstlisting}[language=suiterc]
+[runtime]
+    [[model]]
+        script = run-model
+        [[[environment]]]
+            PATH = /path/to/my-scripts:$PATH
+\end{lstlisting}
+
+You can pass information to a script via its command line or environment,
 
 \begin{lstlisting}[language=suiterc]
-[scheduling]
-    [[get_info]]
-        script = get-host-details
+[runtime]
+    [[model]]
+        script = run-model --color=green
+        [[[environment]]]
+            START_TIME = $CYLC_TASK_CYCLE_POINT
+\end{lstlisting}
+
+or use custom multi-line scripting, in triple quotes, to do anything you like:
+\begin{lstlisting}[language=suiterc]
+[runtime]
+    [[model]]
+        script = """
+cat > model-input.txt <<__EOF__
+COLOR=GREEN
+START_TIME=$CYLC_TASK_CYCLE_POINT
+__EOF__
+run-model model-input.txt"""
+\end{lstlisting}
+
+An optional \lstinline=[[[remote]]]= section determines {\em where} a task
+will run (defaults to localhost), 
+
+\begin{lstlisting}[language=suiterc]
+[runtime]
+    [[model]]
+        script = run-model
         [[[remote]]]
             host = supercomputer
 \end{lstlisting}
+(In this case the \lstinline=run-model= script and any files that it needs -
+such as the model program itself - must be installed on host ``supercomputer'').
 
-It is also possible to pass information to the script, for instance in the
-following example the script ``get-host-details'' is provided with the
-environment variable ``FOO'' set to ``bar''.
-
+An optional \lstinline=[[[job]]]= sub-section determines {\em how} the task
+should be submitted to run (defaults to ``background'', an ordinary shell
+subprocess).
 \begin{lstlisting}[language=suiterc]
-[scheduling]
-    [[get_info]]
-        script = get-host-details
-        [[[environment]]]
-            FOO = bar
+[runtime]
+    [[model]]
+        script = run-model
+        [[[job]]]
+            batch system = pbs
 \end{lstlisting}
 
+\more{So far we have only configured individual tasks.  In fact the
+\lstinline=[runtime]= section is a {\em multiple inheritance hierarchy} that
+allows all shared configuration to be factored out into {\em families} that are
+inherited by multiple tasks - see Section~\ref{Families}.} 
 
-\subsection{Graphs}
+\subsection{Dependency Graphs}
 
-The hello\_world suite contained the line
-\lstinline{graph = hello_world}. This is a graph string. In cylc
-graph strings contain the logic for determining when tasks can be run. A graph
-string should contain a list of tasks along with the inter-dependence between
-them. For instance if we have two tasks \lstinline{foo} and \lstinline{bar},
-where \lstinline{foo} is dependent on \lstinline{bar} succeeding, then we
-would this logic in a graph string as:
-
-\begin{lstlisting}[language=suiterc]
-graph = foo => bar
-\end{lstlisting}
-
-This graph string tells cylc to run \lstinline{foo} and then once
-\lstinline{foo} has succeeded run \lstinline{bar}. Note that if
-\lstinline{foo} fails \lstinline{bar} will not run. These relationships are
-called dependencies, a graph string can contain multiple dependencies.
+The hello\_world suite contained the {\em graph string}
+\lstinline@graph = hello_world@.  Graph strings specify the scheduling logic
+that determines when tasks can run: which tasks depend on, or {\em trigger off},
+which other tasks, if any.  For instance if we have two tasks \lstinline{foo}
+and \lstinline{bar}, and \lstinline{foo} depends on \lstinline{bar} succeeding,
+we could write:
 
 \begin{lstlisting}[language=suiterc]
-graph = """
-    foo => bar
-    bar => baz
-    bar => qux
-    baz => pin
-    qux => pin
-    wol
-"""
+graph = "foo:succeed => bar"
 \end{lstlisting}
 
-\note{The graph string can be written over multiple lines using
-triple, double quotation marks (\lstinline="""=).}
+If \lstinline{foo} fails here, \lstinline{bar} will not run.  Tasks can also
+trigger off failure and other conditions, but success triggers are the default
+so \lstinline=:succeed= can optionally be omitted:
 
-The logic of the previous graph string is outlined in the following diagram.
+\begin{lstlisting}[language=suiterc]
+graph = "foo => bar"
+\end{lstlisting}
+
+A graph string can contain many triggers, and the default success triggers can
+be chained together. This,
+
+\begin{lstlisting}[language=suiterc]
+graph = "foo => bar => baz"
+\end{lstlisting}
+
+is equivalent to this,
+
+\begin{lstlisting}[language=suiterc]
+graph = """foo => bar
+           bar => baz"""
+\end{lstlisting}
+
+You can also write conditional triggering logic with \lstinline=&= (AND) and
+\lstinline=|= (OR) operators. For example,
+
+\begin{lstlisting}[language=suiterc]
+graph = "foo => bar & baz"  # foo => bar, AND foo => baz
+\end{lstlisting}
+
+The \lstinline=cylc graph= command generates nice suite graph visualizations.
+For this graph string,
+
+\begin{lstlisting}[language=suiterc]
+graph = """foo => bar => baz & qux => pin
+           wol"""
+\end{lstlisting}
+
+it produces,
 
 \begin{center}
-    \includegraphics[width=0.4\columnwidth]{resources/tex/cylc-graph}
+\includegraphics[width=0.2\columnwidth]{resources/intro-1.png} %tex/cylc-graph}
 \end{center}
 
+\subsection{Cycling Workflows}
 
-\subsection{Cycling}
-
-Graph strings allow us to define workflows consisting of tasks. In a suite we
-may well want to repeat workflows, which is called cycling.
+The concept of a workflow of cycling tasks was introduced in Section~\ref{Cylc
+Overview}.  The following diagram shows the previous workflow (minus the lone
+`wol' task) repeated for three integer cycle points 1, 2 and 3.
 
 \begin{center}
-    \includegraphics[width=0.6\columnwidth]{resources/tex/cylc-cycle-graph}
+\includegraphics[width=0.5\columnwidth]{resources/intro.png} %tex/cylc-cycle-graph}
 \end{center}
 
-The above diagram shows the workflow from the previous example repeated three
-times with the resultant cycles numbered 1, 2 and 3. With cylc cycles can
-either be numbered or alternatively can use datetimes, for this tutorial shall
-use datetimes.
-
-In order to cycle a workflow we need a start point to begin cycling from, and
-end point to finish cycling at. In cylc these are defined using the
-\lstinline=initial cycle point= and \lstinline=final cycle point= values which
-are set in the \lstinline=[scheduling]= section.
-
-We tell cylc to cycle over a workflow using graph section headings. A graph
-section heading is a section that sits inside the
-\lstinline=[[dependencies]]= section. In the following example the task
-\lstinline{foo} will run once every day at midday starting on the 1st of
-January 2000 and ending on the 5th of January 2000.
-
-\begin{lstlisting}[language=suiterc]
+In cylc these are three distinct workflows that can run concurrently (which is
+how it should be if there is no dependence between them!). In fact many more
+than three cycle points could run concurrently, but we deliberately limit the
+amount of ``runahead''. The default is:
+\begin{lstlisting}
 [scheduling]
-    initial cycle point = 2000-01-01T00
-    final cycle point = 2000-01-05T00
-    [[dependencies]]
-        [[[T12]]]
-            graph = foo
+    max active cycle points = 3
 \end{lstlisting}
 
-In this example the graph section heading \lstinline=[[[T12]]]= means run
-the workflow defined in the \lstinline=graph= section once every day at
-12:00. Equally \lstinline=[[[T06]]]= means run every day at 06:00 and
-\lstinline=[[[T2145]]]= means run every day at 21:45.
+A cycling suite needs an {\em initial cycle point} to start from, 
+a {\em final cycle point} (optional), and at least one cycling sequence with associated
+dependencies defined in a graph string.
 
-\note{When we talk of tasks running every day we don't mean that
-the suite waits an entire day before running the next task, cycle points are
-just labels we can use to organise cycles. It is possible to set real-world
-datetimes as dependencies for cylc tasks see section
-\ref{clock-triggered-tasks}.}
-
-There are multiple forms of graph section heading to serve different purposes,
-more exotic forms are outlined in section \ref{advanced-cycling}.
-
-
-\subsection{Inter Cycle Dependence}
-
-In the previous example the task \lstinline{foo} ran once every day. Because
-we have not specified any dependencies multiple \lstinline{foo} tasks can end
-up running in parallel. In order to make these tasks run one after the other
-we will have to specify a dependency across cycle points as in the following
-example:
-
+% NOTE: I changed [[[T12]]] to [[[R/^/P1M]]] - the audience are climate
+% rearchers, and it is not obvious that [[[T12]]] generates a *sequence*.
 \begin{lstlisting}[language=suiterc]
+[cylc]
+    cycle point format = %Y-%m
 [scheduling]
-    initial cycle point = 2000-01-01T00
-    final cycle point = 2000-01-05T00
+    initial cycle point = 2000-01
+    final cycle point = 2000-05
     [[dependencies]]
-        [[[T12]]]
-        graph = foo[-P1D] => foo
+        [[[P1M]]]
+            graph = model
 \end{lstlisting}
 
-The expression \lstinline{foo[-P1D]} means \lstinline{foo} at a cycle point
-one day earlier, hence in this example \lstinline{foo} will only run once
-its previous run has succeeded. \lstinline{P1D} is an ISO8601 duration (for
-details see \url{http://wikipedia.org/wiki/ISO_8601#Durations}), \lstinline=P=
-denotes a duration and the \lstinline=1D= part means one day. The minus implies
-that the duration is negative (going backwards in time), other examples of
-ISO8601 durations are:
+This says to run task \lstinline=model= for each cycle point on
+a sequence of date-times with a 1-month interval between 2001-01 and 2001-05 
+(see~\ref{advanced-cycling} for other kinds of cycling sequence).
+With no clock-triggers defined (see~\ref{Clock Triggered Tasks}) these
+date-times have no connection to the real-time clock.  Each instance of
+\lstinline=model= is merely labelled with its cycle point value (which the task
+job can use, as a model run start date or instance).  In this case
+there is no dependence between successive \lstinline=model= instances, so they
+can all run concurrently, out to \lstinline=max active cycle points=.
 
+\subsection{Inter-Cycle Dependence}
+
+If each instance of \lstinline=model= in the previous example really depends
+on its own previous instance (for restart files, say), then running multiple
+models concurrently would result in failure.  Here's how to express this
+inter-cycle dependence correctly,
+
+\begin{lstlisting}[language=suiterc]
+[cylc]
+    cycle point format = %Y-%m
+[scheduling]
+    initial cycle point = 2000-01
+    final cycle point = 2000-05
+    [[dependencies]]
+        [[[P1M]]]
+            graph = model[-P1M] => model
+\end{lstlisting}
+At each cycle point in the sequence, the \lstinline=model= at the current point
+depends on the \lstinline=model= with cycle point 1 month earlier.
+
+\lstinline=P1D= is an ISO8601 duration - see
+    \url{http://wikipedia.org/wiki/ISO_8601#Durations}. \lstinline=P= denotes a
+    duration and \lstinline=1M= means one month. Other examples of ISO8601
+    durations are:
 \begin{itemize}
     \item \lstinline{-PT12H} (12 hours ago).
     \item \lstinline{-PT6H30M} (6 hours 30 minutes ago).
