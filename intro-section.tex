@@ -75,9 +75,12 @@ completion or you tell it to shut down.
 \terminology{A cylc \underline{suite daemon} is a light-weight server program
 dedicated to managing a single workflow.}
 
-\paragraph*{Demo}
-Copy the Hello World example code into a suite.rc file in a directory called
-hello\_world, and run the following commands:
+\begin{shaded*}
+
+\subsection{Hello World Tutorial}
+
+Copy the Hello World example code above into a {\em suite.rc} file in a directory called
+{\em hello\_world}, and run the following commands:
 
 \begin{lstlisting}[language=bash]
 $ cd hello_world  # move to the suite directory
@@ -140,6 +143,8 @@ $ cd hello_world
 $ rose suite-log
 # (now view suite and job logs in your web browser)
 \end{lstlisting}
+
+\end{shaded*}
 
 \subsection{Defining Tasks}
 
@@ -358,7 +363,10 @@ depends on the \lstinline=model= with cycle point 1 month earlier.
     \item \lstinline{P1W} (1 week in the future).
 \end{itemize}
 
-\paragraph*{Demo}
+\begin{shaded*}
+
+\subsection{Cycling Suite Tutorial}
+
 This demo is an example of a cycling workflow, to run it create a new
 directory and create a blank rose-suite.conf file within it.
 
@@ -425,3 +433,5 @@ Again a window should open up showing you the progress of the suite.
 Whilst the suite is running try entering graph mode by selecting
 \lstinline[language=]{View > 1 - Graph View} from the menubar, this will show
 the dependencies between the tasks as they run.
+
+\end{shaded*}

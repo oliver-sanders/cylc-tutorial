@@ -47,9 +47,10 @@ to help define complex recursions.
 \\
 \end{tabular}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
-
 TODO: Link to cylc documentation once next version has gone live
+\end{shaded*}
 
 
 \subsection{Advanced Dependencies}
@@ -122,8 +123,10 @@ inherits the \lstinline{script} setting but overrides the
                                       # variable.
 \end{lstlisting}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
 \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-family-trigs.html}.
+\end{shaded*}
 
 
 \subsection{Retries}
@@ -138,9 +141,11 @@ Sometimes tasks fail, you can tell cylc to automatically retry failed tasks.
                                 # each retry.
 \end{lstlisting}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
 \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-retries.html}
 .
+\end{shaded*}
 
 
 \subsection{Jinja2}
@@ -168,9 +173,10 @@ With jinja2 you can set variables and use them throughout your suite.rc file.
 {% endfor -%}
 \end{lstlisting}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
 \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-jinja2.html}
-
+\end{shaded*}
 
 \subsection{Cylc Broadcast}
 
@@ -185,9 +191,10 @@ host for the task \lstinline{task_name}.
 $ cylc broadcast <suite_name> -n <task_name> -s [remote]host=<host_name>
 \end{lstlisting}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
 \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-broadcast.html}
-
+\end{shaded*}
 
 \subsection{Suicide Triggers}
 
@@ -209,9 +216,10 @@ the task \lstinline{task} succeeds.
         """
 \end{lstlisting}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
 \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-suicide.html}
-
+\end{shaded*}
 
 \subsection{Queues}
 
@@ -232,9 +240,10 @@ tasks to run at a time.
             members = foo, bar, baz
 \end{lstlisting}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
 \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-queues.html}
-
+\end{shaded*}
 
 \subsection{Clock Triggered Tasks}
 \label{Clock Triggered Tasks}
@@ -257,9 +266,10 @@ is possible using ''clock triggering``.
                                             # offset from the cycle point.
 \end{lstlisting}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
 \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-clock-triggered.html}.
-
+\end{shaded*}
 
 \subsection{Remote Hosts}
 
@@ -274,5 +284,7 @@ Cylc can run tasks on different machines.
             host = host_name
 \end{lstlisting}
 
+\begin{shaded*}
 \paragraph*{Tutorial}
 \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-remotes.html}
+\end{shaded*}
