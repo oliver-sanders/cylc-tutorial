@@ -1,0 +1,24 @@
+[cylc]
+    UTC mode = True # Ignore DST
+[scheduling]
+    initial cycle point = 20130101T00Z
+    final cycle point = 20130105T00Z
+    [[dependencies]]
+        [[[R1]]]
+            graph = startup => print_colour
+        [[[T00]]]
+            graph = print_colour[-P1D] => print_colour
+[runtime]
+    [[startup]]
+        script = """
+            cylc broadcast -t 20130102T0000Z -n print_colour -s [environment]COLOUR=blue $CYLC_SUITE_REG_NAME
+            cylc broadcast -t 20130104T0000Z -n print_colour -s [environment]COLOUR=red $CYLC_SUITE_REG_NAME
+            cylc broadcast -d $CYLC_SUITE_REG_NAME
+        """
+    [[print_colour]]
+        script = """
+            sleep 4
+            echo "Today's colour is <span style='color:"$COLOUR"'>"$COLOUR"</span>"
+        """
+        [[[environment]]]
+            COLOUR = green

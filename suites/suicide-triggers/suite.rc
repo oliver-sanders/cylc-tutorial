@@ -1,0 +1,23 @@
+[cylc]
+    UTC mode = True # Ignore DST
+[scheduling]
+    [[dependencies]]
+        graph = """
+            bake_cake:fail => purchase_cake
+            bake_cake | purchase_cake => eat_cake
+            purchase_cake => !bake_cake
+            """
+[runtime]
+    [[bake_cake]]
+        script = """
+sleep 10;
+if (($RANDOM % 2)); then
+    echo 'Success'; true;
+else
+    echo 'Burned the cake!'; false;
+fi
+"""
+    [[purchase_cake]]
+        script = sleep 10; echo 'Off to the shops!'
+    [[eat_cake]]
+        script = sleep 10; echo 'Mmm cake!'

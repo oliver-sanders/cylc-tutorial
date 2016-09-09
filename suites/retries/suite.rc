@@ -1,0 +1,27 @@
+[cylc]
+    UTC mode = True # Ignore DST
+[scheduling]
+    [[dependencies]]
+        graph = start => roll_doubles => win
+[runtime]
+    [[start]]
+    [[win]]
+    [[roll_doubles]]
+        # The retry_delays setting below means that "if the roll_doubles
+        # task fails, cylc expects to retry it 5 times before finally
+        # failing. Each retry will have a delay of 6 seconds."
+        retry delays = 5*PT6S
+        # We aren't including the cheat based on CYLC_TASK_TRY_NUMBER
+        # in the Rose tutorial!
+        script = """
+sleep 10
+RANDOM=$$  # Seed $RANDOM
+DIE_1=$((RANDOM%6 + 1))
+DIE_2=$((RANDOM%6 + 1))
+echo "Rolled $DIE_1 and $DIE_2..."
+if (($DIE_1 == $DIE_2)); then
+    echo "doubles!"
+else
+    exit 1
+fi
+        """
