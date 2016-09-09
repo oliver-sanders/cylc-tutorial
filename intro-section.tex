@@ -34,7 +34,7 @@ The most important top level sections in a suite.rc file are:
 
 
 \subsection{Hello World in cylc}
-
+\label{Hello World in cylc}
 This suite runs a single task named \lstinline{hello} that prints ``Hello
 World!'', sleeps for a few seconds, then exits:
 
@@ -79,17 +79,9 @@ dedicated to managing a single workflow.}
 
 \begin{shaded*}
 
-Make a new directory called {\em hello\_world} somewhere - e.g. in your homespace.
-Then, \lstinline{cd} to that directory, and create an empty {\em suite.rc} file
-there:
+If you are running this tutorial on the cylc VM, the raw directory structure of the suite is set up for you. Change directory to {\em \$HOME/tutorial/suites/hello\_world/}. 
 
-\begin{lstlisting}[language=bash]
-$ mkdir ~/hello_world
-$ cd ~/hello_world
-$ touch suite.rc
-\end{lstlisting}
-
-Copy the Hello World example code:
+Inside that directory is a cylc {\em suite.rc} file that looks like this:
 
 \begin{lstlisting}[language=suiterc]
 [scheduling]
@@ -100,12 +92,9 @@ Copy the Hello World example code:
         script = echo "Hello World!"; sleep 30
 \end{lstlisting}
 
-into the {\em suite.rc} file.
-
 Now run the following commands:
 
 \begin{lstlisting}[language=bash]
-$ touch rose-suite.conf  # create an empty rose-suite.conf file
 $ rose suite-run  # install, register, validate, run the suite, and open the GUI
 \end{lstlisting}
 
@@ -383,17 +372,9 @@ inter-cycle dependence correctly,
 
 \begin{shaded*}
 
-This demo is an example of a cycling workflow. To run it, create a new
-directory and create a blank {\em rose-suite.conf} file within it - e.g.:
-
-
-\begin{lstlisting}[language=bash]
-$ mkdir ~/rocket_cycling
-$ cd ~/rocket_cycling
-$ touch rose-suite.conf
-\end{lstlisting}
-
-Next copy the following code into a {\em suite.rc} and a {\em bin/count-down} file.
+This demo is an example of a cycling workflow. On the cylc VM, the suite is
+located at {\em \$HOME/tutorial/suites/rocket\_cycling/}. \lstinline{cd} to that
+directory.
 
 The directory structure should look like this:
 
@@ -453,7 +434,6 @@ done
 To run this demo suite, enter the following commands:
 
 \begin{lstlisting}[language=bash]
-$ chmod +x bin/count-down  # Make the count-down script executable.
 $ rose suite-run
 \end{lstlisting}
 

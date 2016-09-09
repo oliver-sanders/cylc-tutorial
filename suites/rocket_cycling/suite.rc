@@ -1,0 +1,32 @@
+[scheduling]
+    initial cycle point = 2000-01-01T00
+    final cycle point = 2000-01-05T00
+    [[dependencies]]
+        [[[T00]]]
+            graph = """
+                blast_off[-P1D] => point_upwards
+                point_upwards => load_astronauts
+                point_upwards => fill_fuel_tank
+                point_upwards => set_coordinates
+                fill_fuel_tank => light_fuse
+                set_coordinates => count_down
+                light_fuse => count_down
+                load_astronauts => count_down
+                count_down => blast_off
+            """
+[runtime]
+    [[point_upwards]]
+        script = sleep 2; echo "spikey end pointing at sky, flamey end \
+                    pointing at ground"
+    [[load_astronauts]]
+        script = sleep 1; echo "loaded astronauts"
+    [[fill_fuel_tank]]
+        script = sleep 5; echo "tank brimmed"
+    [[set_coordinates]]
+        script = echo "coordinates set for west wallaby st"
+    [[light_fuse]]
+        script = echo "stand well back"
+    [[count_down]]
+        script = count-down
+    [[blast_off]]
+        script = echo "blast off"
