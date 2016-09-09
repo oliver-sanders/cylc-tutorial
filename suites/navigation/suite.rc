@@ -1,0 +1,16 @@
+[cylc]
+    UTC mode = True # Ignore DST
+[scheduling]
+    initial cycle point = 20160601T00Z # 1 June 2016
+    final cycle point = 20160603T00Z # 3 June 2016
+    [[dependencies]]
+        [[[R1]]] # Run once at the start of the suite.
+            graph = compile_navigate
+[runtime]
+    [[root]]
+        pre-script = sleep 5 # Slow down tasks for visualization.
+    [[compile_navigate]]
+        script = """
+            gfortran $CYLC_SUITE_DEF_PATH/src/dead_reckoning.f90 \
+                -o $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+        """

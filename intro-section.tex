@@ -79,11 +79,32 @@ dedicated to managing a single workflow.}
 
 \begin{shaded*}
 
-Copy the Hello World example code above into a {\em suite.rc} file in a directory called
-{\em hello\_world}, and run the following commands:
+Make a new directory called {\em hello\_world} somewhere - e.g. in your homespace.
+Then, \lstinline{cd} to that directory, and create an empty {\em suite.rc} file
+there:
 
 \begin{lstlisting}[language=bash]
-$ cd hello_world  # move to the suite directory
+$ mkdir ~/hello_world
+$ cd ~/hello_world
+$ touch suite.rc
+\end{lstlisting}
+
+Copy the Hello World example code:
+
+\begin{lstlisting}[language=suiterc]
+[scheduling]
+    [[dependencies]]
+        graph = hello
+[runtime]
+    [[hello]]
+        script = echo "Hello World!"; sleep 30
+\end{lstlisting}
+
+into the {\em suite.rc} file.
+
+Now run the following commands:
+
+\begin{lstlisting}[language=bash]
 $ touch rose-suite.conf  # create an empty rose-suite.conf file
 $ rose suite-run  # install, register, validate, run the suite, and open the GUI
 \end{lstlisting}
@@ -104,7 +125,7 @@ process (potentially on another machine, although not in this case).
 The job script and its output are written to a standard job log directory:
 
 \begin{lstlisting}[language=bash]
-$ ls -1 $HOME/cylc-run/hello_world/log/job/1/hello/01/
+$ ls $HOME/cylc-run/hello_world/log/job/1/hello/01/
 job  # task job script
 job.out  # task standard out
 job.err  # task standard error
@@ -136,10 +157,10 @@ Hello World!
 ...
 \end{lstlisting}
 
-or use the \lstinline{rose suite-log} web-based suite log file viewer:
+or use the \lstinline{rose suite-log} web-based suite log file viewer (also known as {\em Rose Bush}):
 
 \begin{lstlisting}[language=bash]
-$ cd hello_world
+$ cd ~/hello_world
 $ rose suite-log
 # (now view suite and job logs in your web browser)
 \end{lstlisting}
@@ -362,10 +383,19 @@ inter-cycle dependence correctly,
 
 \begin{shaded*}
 
-This demo is an example of a cycling workflow, to run it create a new
-directory and create a blank rose-suite.conf file within it.
+This demo is an example of a cycling workflow. To run it, create a new
+directory and create a blank {\em rose-suite.conf} file within it - e.g.:
 
-Next copy the following code into a suite.rc and a bin/count-down file.
+
+\begin{lstlisting}[language=bash]
+$ mkdir ~/rocket_cycling
+$ cd ~/rocket_cycling
+$ touch rose-suite.conf
+\end{lstlisting}
+
+Next copy the following code into a {\em suite.rc} and a {\em bin/count-down} file.
+
+The directory structure should look like this:
 
 \begin{lstlisting}[language=]
 |-- bin/
@@ -373,6 +403,8 @@ Next copy the following code into a suite.rc and a bin/count-down file.
 |-- rose-suite.conf
 `-- suite.rc
 \end{lstlisting}
+
+The {\em suite.rc} file should look like this:
 
 \begin{lstlisting}[language=suiterc, title=suite.rc]
 [scheduling]
@@ -409,12 +441,13 @@ Next copy the following code into a suite.rc and a bin/count-down file.
         script = echo "blast off"
 \end{lstlisting}
 
+and the {\em bin/count-down} script should look like this:
 \begin{lstlisting}[language=bash, title=bin/count-down]
-sleep 1; echo 5;
-sleep 1; echo 4;
-sleep 1; echo 3;
-sleep 1; echo 2;
-sleep 1; echo 1;
+#!/bin/bash
+for count in {5..1}; do
+    echo $count
+    sleep 1
+done
 \end{lstlisting}
 
 To run this demo suite, enter the following commands:

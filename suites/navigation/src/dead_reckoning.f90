@@ -2,6 +2,7 @@ PROGRAM extract_compass_log
 IMPLICIT NONE
 CHARACTER(31)    :: dt_hr_env    ! No. of hours, from environment
 CHARACTER(255)   :: pos_fpath    ! File path to a position file with lat/long
+CHARACTER(255)   :: task_log_root! File path to cylc output files
 INTEGER:: code             ! iostat code
 INTEGER:: timevalues(8)    ! time values
 INTEGER, PARAMETER :: real64=SELECTED_REAL_KIND(15, 307)
