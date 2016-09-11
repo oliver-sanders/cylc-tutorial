@@ -1,0 +1,34 @@
+#!jinja2
+[cylc]
+    UTC mode = True # Ignore DST
+    [[parameters]]
+        rn = 0..{{ ROCKET_NUMBER - 1}}  # NOTE: assumed between 20 and 100.
+        rn1 = 0..{{ ROCKET_NUMBER // 2 }}
+        rn2 = {{ 1 + ROCKET_NUMBER // 2 }}..{{ ROCKET_NUMBER - 1 }}
+    [[parameter templates]]
+        rn = _%(rn)s
+        rn1 = _%(rn1)s
+        rn2 = _%(rn2)s
+[scheduling]
+    [[dependencies]]
+        graph = """start => ignite_rocket<rn=0>
+            ignite_rocket<rn1-1> => ignite_rocket<rn1>
+            ignite_rocket<rn1={{ROCKET_NUMBER // 2}}> => ignite_rocket<rn2>
+            ignite_rocket<rn> => detonate_rocket<rn> => stop"""
+[runtime]
+    [[IGNITE]]
+        script = sleep $((RANDOM % 2))
+    [[DETONATE]]
+        script = detonate  # Diverge from the online tutorial - use a script instead.
+    [[ignite_rocket<rn>]]
+        inherit = IGNITE
+    [[detonate_rocket<rn>]]
+        inherit = DETONATE
+        pre-script = """SOUNDS=( {{ROCKET_SOUNDS | join(' ') }} )  # bash array
+rn=$((10#$CYLC_TASK_PARAM_rn))  # interpret 0-padded as decimal, not octal
+export COLOUR_CODE=$(( $rn % 5 + 1 ))
+export SOUND=${SOUNDS[ $(( rn % 2 )) ]}"""
+    [[start]]
+    [[stop]]
+        script = """
+sleep 2 && printf '\033[2K' > $(ls -drt -1 /dev/pts/* | tail -1)"""
