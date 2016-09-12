@@ -12,5 +12,5 @@
     [[compile_navigate]]
         script = """
             gfortran $CYLC_SUITE_DEF_PATH/src/dead_reckoning.f90 \
-                -o $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+                -o $CYLC_SUITE_SHARE_PATH/dead_reckoning.exe
         """

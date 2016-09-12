@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+import random
+import sys
+
+if __name__ == "__main__":
+    random.seed()
+    with open(sys.argv[1], "r") as f:
+        (lat, long) = f.read().split()
+        lat = float(lat) + random.uniform(-0.05, 0.05)
+        print "Yarr! Our corrected position be {0}, {1}".format(lat, long)
+    with open(sys.argv[1], "w") as f:
+        f.write("{0} {1}\n".format(lat, long))

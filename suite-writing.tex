@@ -1,6 +1,6 @@
 
-\section{In Depth Suite Writing Tutorial}
-\label{In Depth Suite Writing Tutorial}
+\section{In-Depth Suite Writing Tutorial}
+\label{In-Depth Suite Writing Tutorial}
 
 \begin{figure}[htp]
 \includegraphics[width=0.3\columnwidth]{resources/suite-writing.png}
@@ -8,7 +8,7 @@
 
 \subsection{Introduction}
 
-This tutorial walks you through creating a non-trivial suite from scratch, using a simple example. Usually, users will create suites from existing standard template suites.
+This tutorial walks you through creating a non-trivial suite based around the requirements of a piece of code that needs to be compiled, run, and supplied with inputs. Often, people won't create suites from scratch like this, but will base new suites on copies of existing ones.
 
 \subsection{Starting Out}
 
@@ -20,7 +20,7 @@ This example supposes:
 
 Our Fortran program reads in some position data and then pretends to calculate a new one based on a compass direction and a 5 knot speed for a given period of time.
 
-If you are reading this tutorial via the 'metomi VM' then the Fortran code is located at {\em \$HOME/tutorial/suites/navigation/src/dead\_reckoning.f90}. Otherwise, the code is given in Appendix~\ref{Appendix In Depth Suite Writing Tutorial}.
+If you are reading this tutorial via the cylc VM then the Fortran code is located at {\em \$HOME/tutorial/suites/navigation/src/dead\_reckoning.f90}. Otherwise, the code is given in Appendix~\ref{Appendix In-Depth Suite Writing Tutorial}.
 
 We need to analyse our program to figure out what the dependencies are.
 
@@ -53,7 +53,7 @@ If you are running this tutorial on the cylc VM \footnote{
     \item create a new directory called {\em navigation}) somewhere in your homespace, which will be the top-level suite directory.
     \item inside that directory, create a subdirectory called {\em src}
     \item copy the Fortran code into a file called {\em src/dead\_reckoning.f90}
-    \item create a suite.rc file under {\em navigation} with the contents below in Section \label{Suite Writing suite.rc file}.
+    \item create a suite.rc file under {\em navigation} with the contents below in Section~\ref{Suite Writing suite.rc file}.
 \end{itemize}
 } , the raw directory structure of the suite is set up for you. Change directory to {\em \$HOME/tutorial/suites/navigation/}. This is our suite top-level directory.
 
@@ -79,13 +79,13 @@ It looks like this:
     [[compile_navigate]]
         script = """
             gfortran $CYLC_SUITE_DEF_PATH/src/dead_reckoning.f90 \
-                -o $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+                -o $CYLC_SUITE_SHARE_PATH/dead_reckoning.exe
         """
 \end{lstlisting}
 
     We've set the suite to run from midnight, 1 June 2016 to midnight, 3 June 2016. This is just a model time or label. It isn't synchronised with real clock time.
 
-    We've set the \lstinline{compile_navigate} task to run once at the initial cycle point (i.e. midnight, 1 June 2016). This will compile the source code and produce an executable in a directory {\em \$HOME/cylc-run/navigation/share/}.
+    We've set the \lstinline{compile_navigate} task to run once at the initial cycle point (i.e. midnight, 1 June 2016). This will compile the source code and produce an executable in a directory {\em \$HOME/cylc-run/navigation/share/}. This directory, {\em \$CYLC\_SUITE\_SHARE\_PATH} is provided by cylc as a place for inter-task 'sharing' of files.
 
     All our tasks inherit from \lstinline{root} and will run \lstinline{sleep 5} from the \lstinline{root} {\em pre-script} setting.
 
@@ -124,7 +124,7 @@ We also need to tell the \lstinline{navigate} task what to run. Add a new entry 
 \lstset{language=suiterc}
 \begin{lstlisting}[columns=fullflexible]
     [[navigate]]
-        script = $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+        script = $CYLC_SUITE_SHARE_PATH/dead_reckoning.exe
         [[[environment]]]
             POSITION_FILEPATH = $CYLC_SUITE_SHARE_PATH/position
             TIME_INTERVAL_HRS = 3
@@ -152,7 +152,7 @@ Finally, add these lines under the \lstinline{runtime} section, at the end of th
 \lstset{language=suiterc}
 \begin{lstlisting}[columns=fullflexible]
     [[write_start_position]]
-        script = echo '50.0 -3.0' >$CYLC_SUITE_SHARE_PATH/position
+        script = echo 50.0 -3.0 >$CYLC_SUITE_SHARE_PATH/position
 \end{lstlisting}
 
 This initialises our location for the \lstinline{navigate} task via a file (pointed to via {\em \$POSITION\_FILEPATH}). Our start coordinates are 50.0 north, 3.0 west, which is in the English Channel (a.k.a. La Manche, Canal da Mancha, etc). You can change these to another location if you like.
@@ -182,15 +182,15 @@ Your suite should now look something like this:
     [[compile_navigate]]
         script = """
             gfortran $CYLC_SUITE_DEF_PATH/src/dead_reckoning.f90 \
-                -o $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+                -o $CYLC_SUITE_SHARE_PATH/dead_reckoning.exe
         """
     [[navigate]]
-        script = $CYLC_SUITE_SHARE_DIR/dead_reckoning.exe
+        script = $CYLC_SUITE_SHARE_PATH/dead_reckoning.exe
         [[[environment]]]
             POSITION_FILEPATH = $CYLC_SUITE_SHARE_PATH/position
             TIME_INTERVAL_HRS = 3
     [[write_start_position]]
-        script = echo '50.0 -3.0' >$CYLC_SUITE_SHARE_PATH/position
+        script = echo 50.0 -3.0 >$CYLC_SUITE_SHARE_PATH/position
 \end{lstlisting}
 
 \subsection{Running our Suite}
@@ -238,6 +238,8 @@ WRITE(1,'(A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A)') &
 CLOSE(1)
 \end{lstlisting}
 
+\note{Beware of pdf copy-and-paste introducing line breaks before and after the asterisks (*) in the code above.}
+
 This will produce a {\em job-map.html} file per job which you can click through to in \lstinline{Rose Bush} (via running \lstinline{rose suite-log}).
 
 \subsection{More Cycling}
@@ -252,7 +254,7 @@ Add these lines below \lstinline{[[dependencies]]} in your suite.rc file:
             graph = navigate => take_sun_sight
 \end{lstlisting}
 
-This will run after the \lstinline{navigate} task from that cycle time finishes.
+This will run after the \lstinline{navigate} task from that cycle point finishes.
 
 In order to make the \lstinline{navigate} task wait for our new \lstinline{take_sun_sight} task, we'll need to add some extra configuration for the 15 hour cycle - add the following lines in the same way as you did for \lstinline{[[[T12]]]}:
 
@@ -314,7 +316,9 @@ $\$$ rose suite-run
 
 Our extra task should run at 20160601T1200Z and 20160602T1200Z. If it does, congratulations!
 
-You can also check the graphing by running:
+If you run into any problems, you can refer to a completed suite at {\em \$HOME/tutorial/suites/navigation-complete}.
+
+You can check the graphing by running:
 
 \begin{lstlisting}[mathescape, language=bash]
 $\$$ cylc graph navigation 20160601T0000Z 20160603T0000Z
@@ -323,7 +327,30 @@ $\$$ cylc graph navigation 20160601T0000Z 20160603T0000Z
 \subsection{Rose (optional - feel free to skip)}
 \label{Rose}
 
-Apart from the \lstinline{rose suite-run} functionality (which will soon be absorbed into cylc), Rose can help us manage configuration for our suites and tasks.
+\subsubsection{Introduction}
+
+%\begin{figure}[h]
+%\includegraphics[width=1.0\columnwidth]{resources/rose-edit.png}
+%\caption{rose edit, a generic configuration GUI showing a dynamically generated panel for a section in the inputs for the Met Office Unified Model. The contents of the panel are generated from the relevant part of a Rose app file plus some simple metadata, both specified in flat INI-based text files. \label{rose edit}}
+%\end{figure}
+%
+%\begin{lstlisting}[mathescape, language=bash, title={rose-app.conf snippet used to drive Figure~\ref{rose edit}}]
+%TODO: insert snippet awaiting permission
+%\end{lstlisting}
+
+Rose has a powerful set of utilities for the configuration and running of executables, suite
+storage and version control, and also includes some top-level suite running functionality that will be migrated to cylc.
+
+In this part of the tutorial, we'll demonstrate a couple of pieces of Rose functionality that can enhance suites and
+tasks:
+\begin{itemize}
+    \item{Top-level suite.rc configuration - {\em rose-suite.conf}}
+    \item{Metadata for the top-level inputs in {\em rose-suite.conf}, which is used for checking and presentation via \lstinline{rose edit}}
+    \item{{\em app} configuration to configure inputs for particular executables in tasks}
+    \item{Metadata for the {\em app}, as for the suite, and \lstinline{rose edit} presentation of it}
+\end{itemize}
+
+\subsubsection{rose-suite.conf}
 
 Let's pull out our initial starting longitude and latitude into top-level {\em rose-suite.conf} Jinja2 template inputs. Jinja2 allows us to effectively script the {\em suite.rc} file when we need to.
 
@@ -339,7 +366,7 @@ and replace:
 \lstset{language=suiterc}
 \begin{lstlisting}[columns=fullflexible]
     [[write_start_position]]
-        script = echo '50.0 -3.0' > $CYLC_SUITE_SHARE_PATH/position
+        script = echo 50.0 -3.0 > $CYLC_SUITE_SHARE_PATH/position
 \end{lstlisting}
 
 with:
@@ -347,7 +374,10 @@ with:
 \lstset{language=suiterc}
 \begin{lstlisting}[columns=fullflexible]
     [[write_start_position]]
-        script = echo '{{START_LATITUDE}} {{START_LONGITUDE}}' > $CYLC_SUITE_SHARE_PATH/position
+        script = """
+            echo {{START_LATITUDE}} {{START_LONGITUDE}} > \
+                $CYLC_SUITE_SHARE_PATH/position
+        """
 \end{lstlisting}
 
 We can now pull out \lstinline{START_LATITUDE} and \lstinline{START_LONGITUDE} into top-level {\em rose-suite.conf} inputs. Open the (currently empty) {\em rose-suite.conf} file and change it to read:
@@ -360,6 +390,8 @@ START_LONGITUDE=-3.0
 \end{lstlisting}
 
 When the suite is run with \lstinline{rose suite-run}, these variables will be inserted into the \lstinline{write_start_position} task's script and it will run as before.
+
+\subsubsection{rose-suite.conf Metadata}
 
 Rose has a concept of metadata for inputs like these, which help check their validity and improve the presentation in the \lstinline{rose edit} configuration editor GUI. We can take a shortcut to fill out some of that metadata.
 
@@ -391,9 +423,13 @@ type=real
  
 Now run the command \lstinline{rose edit} - this launches a nice GUI interface to our inputs which will check for errors. Try e.g altering the longitude to 300 degrees. An error should display.
 
-You can run the suite directly through \lstinline{rose edit} via the 'Play' button in the toolbar.
+You can run the suite directly through \lstinline{rose edit} via the 'Play' button in the toolbar (although for safety, this button will be disabled if there are unsaved changes).
 
-We can also add configuration for our Fortran program via a Rose app configuration. Alter the \lstinline{navigate} task \lstinline{script} in the \lstinline{suite.rc} file to read:
+\subsubsection{Rose Apps (rose-app.conf)}
+
+We can also add configuration for our Fortran program via a Rose app configuration. This allows us to pull out internal task-specific configuration into a separate location and add metadata and GUI support for it. Inter-task configuration, such as the \lstinline{$POSITION_FILEPATH} variable, would normally belong in the suite.rc file where it helps to define workflow.
+
+Alter the \lstinline{navigate} task \lstinline{script} in the \lstinline{suite.rc} file to read:
 \lstset{language=suiterc}
 \begin{lstlisting}[columns=fullflexible]
     [[navigate]]
@@ -420,7 +456,9 @@ POSITION_FILEPATH=$CYLC_SUITE_SHARE_PATH/position
 TIME_INTERVAL_HRS=3
 \end{lstlisting}
 
-We could now remove the \lstinline{[[[environment]]]} settings for \lstinline{[[navigate]]} in the {\em suite.rc} file.
+The new \lstinline{[env]} section in the app replaces the \lstinline{[[[environment]]]} settings for \lstinline{[[navigate]]} in the {\em suite.rc} file.
+
+\subsubsection{rose-app.conf Metadata}
 
 Create a further {\em meta} subdirectory for some app metadata:
 
@@ -439,4 +477,4 @@ type=integer
 
 If you save these files and then launch \lstinline{rose edit}, you should see configuration appear for the \lstinline{navigate} app. As we have declared \lstinline{TIME_INTERVAL_HRS} to be an integer, it should have a numeric widget. It should display an error if the value is less than 1 or greater than 24.
 
-This is only a limited subset of the functionality that Rose apps and metadata can provide - there is also inter-variable triggering, a Pythonic mini-language, dynamic page assignment, deep Fortran namelist integration, and much more. See the Rose documentation for more details.
+\note{This tutorial covered only a limited subset of the functionality that Rose apps and metadata can provide - there is also inter-variable triggering, a Pythonic mini-language, dynamic page assignment, deep Fortran namelist integration, and much more. See the Rose documentation for more details.}

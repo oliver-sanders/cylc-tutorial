@@ -1,16 +1,8 @@
-\section{Appendix: In-Depth Suite Writing Tutorial}
-\label{Appendix In-Depth Suite Writing Tutorial}
-
-\note{This Appendix contains extra explanatory material for Section~\ref{In-Depth Suite Writing Tutorial}.}
-
-\subsection{Fortran navigation code}
-
-\lstset{language=Fortran}
-\begin{lstlisting}[columns=fullflexible,basicstyle=\small]
 PROGRAM extract_compass_log
 IMPLICIT NONE
 CHARACTER(31)    :: dt_hr_env    ! No. of hours, from environment
 CHARACTER(255)   :: pos_fpath    ! File path to a position file with lat/long
+CHARACTER(255)   :: task_log_root! File path to cylc output files
 INTEGER:: code             ! iostat code
 INTEGER:: timevalues(8)    ! time values
 INTEGER, PARAMETER :: real64=SELECTED_REAL_KIND(15, 307)
@@ -70,6 +62,17 @@ new_long = long + &
 new_lat = (180.0/pi) * new_lat
 new_long = (180.0/pi) * new_long
 
+lat = (180.0/pi) * lat
+long = (180.0/pi) * long
+CALL get_environment_variable("CYLC_TASK_LOG_ROOT",value=task_log_root,status=code)
+OPEN(1,file=TRIM(task_log_root) // '-map.html',action='write')
+WRITE(1,'(A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A)') &
+"<img src='https://maps.googleapis.com/maps/api/staticmap?center=",&
+lat,",",long,"&zoom=7&size=600x300&markers=color:blue|label:A|",&
+lat,",",long,"&markers=color:red|label:B|",new_lat,",",new_long,&
+"'/>"
+CLOSE(1)
+
 PRINT*, "New position, me hearties:",new_lat," ",new_long
 
 ! Overwrite position file with new lat and long
@@ -77,5 +80,4 @@ OPEN(1,file=pos_fpath,action='write')
 WRITE(1,*) new_lat,new_long
 CLOSE(1)
 END PROGRAM
-\end{lstlisting}
 
