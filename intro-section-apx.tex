@@ -10,7 +10,7 @@ Cylc suites are defined in a simple human-readable text format, by design,
 because complex workflow definitions are best managed like program source code,
 with dedicated revision control power tools such as git and subversion that
 work with text-based diffs.  This allows proper branch-and-merge collaborative
-development of these complex systems.
+development of complex workflows.
 
 \subsection{The Minimal Cylc Suite, and Dummy Tasks}
 
@@ -57,9 +57,10 @@ security requirements (elevated system privileges are required in order to
 submit jobs for many users).
 
 \lstinline=cylc run= starts a dedicated light-weight server program just for your
-workflow, running under your normal Unix user account. By default it is a Unix
-{\em daemon} process that detaches from your terminal and stays alive when you
-log out. To stop a suite from daemonizing use \lstinline=cylc run --no-detach=. 
+workflow, running under your normal Unix user account, it submits jobs just
+as you would. By default it is a Unix {\em daemon} process that detaches from
+your terminal and stays alive when you log out. To stop a suite from
+daemonizing use \lstinline=cylc run --no-detach=. 
 
 
 \subsection{rose suite-run}
@@ -95,17 +96,17 @@ directories in large or long-running suites.
 
 \subsection{Defining Tasks}
 
-You can run any existing program or script in a cylc task so long as,
+You can run any existing program or script in a cylc task so long as it:
 \begin{itemize}
-    \item it returns standard shell exit status: zero for success, non-zero
-        for error.  This is required for automatic error detection.
-    \item it waits on any internal processes before exiting (e.g.\ jobs
+    \item returns standard exit status (zero for success, non-zero
+        for error) to allow automatic error detection
+    \item waits on any internal processes before exiting (e.g.\ jobs
         submitted internally to a batch scheduler)
 \end{itemize}
 
-Shell scripts unfortunately do not abort on error by default, but you can force them
-to do so by putting \lstinline=set -e= at the top.  It is also a good idea to use
-\lstinline=set -u= to abort if an undefined variable is referenced. 
+Shell scripts unfortunately do not abort on error by default, but you can force
+them to do so by putting \lstinline=set -e= at the top.  It is also a good idea
+to use \lstinline=set -u= to abort if an undefined variable is referenced. 
 
 Scripts that spawn detaching processes internally have to be modified, to make
 them wait before exiting - otherwise it is impossible for cylc to determine
@@ -118,8 +119,8 @@ Task job scripts wrap the configured task scripting and environment in
 code to automatically trap errors and communicate progress back to the
 suite daemon.
 
-Variables from suite.rc task environment section are exported in the job script, and
-several scripting items get inserted verbatim into it:
+Variables from suite.rc task environment section are exported in the job
+script, and several scripting items get inserted verbatim into it:
 
 \begin{itemize}
     \item \lstinline=init-script= - runs at the top of job script
@@ -134,11 +135,12 @@ blocks of code as well as having unique main script content.
 
 \subsection{Remote Task Hosts}
 
-Cylc doesn't install files to remote hosts for you, because in general it is
-not possible to automatically determine what files might be needed.  If a task
-host does not share a filesystem with the suite host, make sure you install any
-files needed by the tasks that run there.  Rose can help to automate file
-installation at suite start-up.
+Cylc doesn't install files to remote hosts for you because in general it is not
+possible to automatically determine what files might be needed. If a task host
+does not share a filesystem with the suite host, make sure you install any
+files needed by the tasks that run there, or define some initital tasks to do
+file installation for you.  Rose can help to automate file installation at
+suite start-up.
 
 \subsection{Supported Batch Systems}
 

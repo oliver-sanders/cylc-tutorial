@@ -5,7 +5,7 @@
 Cylc Overview} and the Cylc User Guide.}
 
 Cylc (``silk'') is a workflow engine that can manage continuous workflows of
-cycling (repeating) tasks for applications such as weather and environmental
+cycling tasks for applications such as weather and environmental
 forecasting, and climate simulation.
 
 \begin{itemize}
@@ -13,13 +13,12 @@ forecasting, and climate simulation.
 program) that runs on a computer.}
     \item \terminology{A \underline{workflow} is a \underline{suite} of interdependent
 tasks.}
-    \item \terminology{A \underline{cycle point} is a point on an integer or
-        date-time sequence.}
-    \item \terminology{A \underline{cycling task} runs the same job repeatedly for some
+    \item \terminology{A \underline{cycle point} is a point on a date-time (or integer) sequence.}
+    \item \terminology{A \underline{cycling task} runs the same job repeatedly, for some
 sequence of cycle points.}
     \item \terminology{A \underline{continuous workflow of cycling tasks} is a single
-workflow, not just a sequence of single-cycle workflows, and it may extend
-indefinitely into the future.} 
+workflow composed of cycling tasks, not just a series of separate single-cycle
+workflows, and it may extend indefinitely into the future.} 
 \end{itemize}
 
 A small workflow of six tasks (with no cycling as yet) can be shown as a {\em
@@ -59,17 +58,18 @@ sequentially.\footnote{Although some mitigate this problem by statically
 defining multiple steps or ``chunks'' within fixed cycles.}
 
 Cylc knows about inter-cycle dependence and manages the suite as {\em a single
-continuous workflow with no cycle boundaries}, not as a series of distinct
+continuous workflow with no cycle boundaries}, not just a series of separate
 single-cycle-point workflows.  In cylc, cycle points are merely task labels,
 not global loop indices.  Each task can run when its own inputs are satisfied,
 regardless of cycle point.  Here's how cylc sees three cycles of our example
-suite (note that this can go on indefinitely):
+suite (and note that this can go on indefinitely):
 
 \begin{center}
     \includegraphics[width=0.45\columnwidth]{resources/example-3cycles.png}
 \end{center}
 
-Consequently, cylc can run workflows faster, recover from delays faster, and
-handle failures and delays better than fixed-cycle schedulers.
-Appendix~\ref{Appendix Cylc Overview} shows actual job schedules for this
-example suite, and compares the result for a fixed-cycle scheduler.
+(The integers attached to each task are the cycle points). Consequently, cylc can
+run workflows faster, recover from delays faster, and handle failures and
+delays better than fixed-cycle schedulers.  Appendix~\ref{Appendix Cylc
+Overview} shows actual job schedules for this example suite, and compares the
+result for a fixed-cycle scheduler.

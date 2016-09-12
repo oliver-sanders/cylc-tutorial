@@ -58,7 +58,7 @@ shell scripting.
 You can run a new cylc suite like this (but don't do it just yet):
 
 \begin{lstlisting}[language=bash]
-$ cylc register hello_world /path/to/suite/  # register suite name "hello_world"
+$ cylc register hello_world /path/to/hello_world/  # register name "hello_world"
 $ cylc validate hello_world  # check for configuration errors
 $ cylc run hello_world  # run the suite
 $ cylc gui hello_world &  # open a suite control GUI
@@ -116,7 +116,7 @@ The task job logs are automatically retrieved to the suite host, if the task
 runs on another machine.
 
 While a task is visible in the GUI, right-click on it to view its log files.
-After that, look in its log directory,
+After that, look in its log directory:
 
 \begin{lstlisting}[language=bash]
 $ cd $HOME/cylc-run/hello_world/log/job/1/hello/01/
@@ -126,7 +126,7 @@ Hello World!
 ...
 \end{lstlisting}
 
-or use the \lstinline{cylc cat-log} command,
+or use the \lstinline{cylc cat-log} command:
 
 \begin{lstlisting}[language=bash]
 $ cylc cat-log --help  # see "cylc --help" for top level command help
@@ -136,7 +136,7 @@ Hello World!
 ...
 \end{lstlisting}
 
-or use the \lstinline{rose suite-log} web-based suite log file viewer.
+or use the \lstinline{rose suite-log} web-based suite log file viewer:
 
 \begin{lstlisting}[language=bash]
 $ cd hello_world
@@ -148,7 +148,7 @@ $ rose suite-log
 
 \subsection{Defining Tasks}
 
-You can have a task run an external program or script, or shell scripting
+A task can run an external program or script, or shell scripting
 inlined in the suite.rc file, or any combination of the two.  A suite
 \lstinline{bin} directory is automatically added to your shell
 \lstinline{$PATH} so that scripts residing in it can be called by name,
@@ -196,7 +196,7 @@ or use custom multi-line scripting, in triple quotes, to do anything you like:
     [[model]]
         script = """
 cat > model-input.txt <<__EOF__
-COLOR=GREEN
+COLOR=green
 START_TIME=$CYLC_TASK_CYCLE_POINT
 __EOF__
 run-model model-input.txt"""
@@ -226,7 +226,7 @@ subprocess).
             batch system = pbs
 \end{lstlisting}
 
-\more{So far we have only configured individual tasks.  In fact the
+\note{So far we have only configured individual tasks.  In fact the
 \lstinline=[runtime]= section is a {\em multiple inheritance hierarchy} that
 allows all shared configuration to be factored out into {\em families} that are
 inherited by multiple tasks - see Section~\ref{Families}.} 
@@ -306,12 +306,10 @@ amount of ``runahead''. The default is:
     max active cycle points = 3
 \end{lstlisting}
 
-A cycling suite needs an {\em initial cycle point} to start from, 
-a {\em final cycle point} (optional), and at least one cycling sequence with associated
-dependencies defined in a graph string.
+A cycling suite needs an {\em initial cycle point} and at least one cycling
+sequence with associated dependencies defined in a graph string. An optional
+{\em final cycle point} can also be given.
 
-% NOTE: I changed [[[T12]]] to [[[R/^/P1M]]] - the audience are climate
-% rearchers, and it is not obvious that [[[T12]]] generates a *sequence*.
 \begin{lstlisting}[language=suiterc]
 [cylc]
     cycle point format = %Y-%m
@@ -322,21 +320,20 @@ dependencies defined in a graph string.
         [[[P1M]]]
             graph = model
 \end{lstlisting}
-
-This says to run task \lstinline=model= for each cycle point on
-a sequence of date-times with a 1-month interval between 2001-01 and 2001-05 
+This suite definition says to run task \lstinline=model= for each cycle point
+on a sequence of date-times with a 1-month interval between 2001-01 and 2001-05 
 (see~\ref{advanced-cycling} for other kinds of cycling sequence).
 With no clock-triggers defined (see~\ref{Clock Triggered Tasks}) these
 date-times have no connection to the real-time clock.  Each instance of
 \lstinline=model= is merely labelled with its cycle point value (which the task
-job can use, as a model run start date or instance).  In this case
+job can use, e.g.\ as a model run start date).  In this case
 there is no dependence between successive \lstinline=model= instances, so they
 can all run concurrently, out to \lstinline=max active cycle points=.
 
 \subsection{Inter-Cycle Dependence}
 
 If each instance of \lstinline=model= in the previous example really depends
-on its own previous instance (for restart files, say), then running multiple
+on its own previous instance (for restart files, say), running multiple
 models concurrently would result in failure.  Here's how to express this
 inter-cycle dependence correctly,
 
@@ -350,8 +347,6 @@ inter-cycle dependence correctly,
         [[[P1M]]]
             graph = model[-P1M] => model
 \end{lstlisting}
-At each cycle point in the sequence, the \lstinline=model= at the current point
-depends on the \lstinline=model= with cycle point 1 month earlier.
 
 \lstinline=P1D= is an ISO8601 duration - see
     \url{http://wikipedia.org/wiki/ISO_8601#Durations}. \lstinline=P= denotes a
