@@ -1,0 +1,16 @@
+#!jinja2
+{% set N_MEMS = 5 -%}
+[scheduling]
+    [[dependencies]]
+        graph = """
+{% for MEM in range(N_MEMS) -%}
+     pre => sim_m{{MEM}} => post
+{% endfor -%}
+        sim_m2 => boo"""
+[runtime]
+{% for MEM in range(N_MEMS) -%}
+    [[sim_m{{MEM}}]]
+        script = echo "I'm member {{MEM}}"
+{% endfor -%}
+    [[boo]]
+        script = echo "BOO!"

@@ -147,32 +147,94 @@ Sometimes tasks fail, you can tell cylc to automatically retry failed tasks.
 
 \subsection{Jinja2}
 
-With jinja2 you can set variables and use them throughout your suite.rc file.
+Jinja2 (\url{http://jinja.pocoo.org/}) is a {\em template processor} -
+essentially a programming language that can be embedded in arbitrary text,
+for the purpose of altering that text.  In cylc, you can think of
+Jinja2 as providing programming constructs (variables, data structures,
+loops, etc.) for {\em generating your suite definition}.
 
 \paragraph{Example} $ $
 
 \begin{lstlisting}
 #!jinja2
-{% set task_number = 5 -%}
+{% set N_MEMS = 5 -%}
 [scheduling]
     [[dependencies]]
         graph = """
-            {% for task in range(task_number - 1) -%}
-                task_{{task}} => task_{{task + 1}}
-            {% endfor -%}
-        """
-[runtime]
-{% for task in range(task_number) -%}
-[[task_{{task}}]]
-    script = echo $TASK_NUMBER
-    [[[environment]]]
-        TASK_NUMBER = {{task}}
+{% for MEM in range(N_MEMS) -%}
+     pre => sim_m{{MEM}} => post
 {% endfor -%}
+        sim_m2 => boo"""
+[runtime]
+{% for MEM in range(N_MEMS) -%}
+    [[sim_m{{MEM}}]]
+        script = echo "I'm member {{MEM}}"
+{% endfor -%}
+    [[boo]]
+        script = echo "BOO!"
 \end{lstlisting}
+
+When this file is parsed Jinja2 generates the final suite definition, which
+you can see with \lstinline=cylc view -j=:
+\begin{lstlisting}
+[scheduling]
+    [[dependencies]]
+        graph = """
+    pre => sim_m0 => post
+    pre => sim_m1 => post
+    pre => sim_m2 => post
+    pre => sim_m3 => post
+    pre => sim_m4 => post
+        sim_m2 => boo"""
+[runtime]
+    [[sim_m0]]
+        script = echo "I'm member 0"
+    [[sim_m1]]
+        script = echo "I'm member 1"
+    [[sim_m2]]
+        script = echo "I'm member 2"
+    [[sim_m3]]
+        script = echo "I'm member 3"
+    [[sim_m4]]
+        script = echo "I'm member 4"
+    [[boo]]
+        script = echo "BOO!"
+\end{lstlisting}
+
+The \lstinline=cylc graph= command shows the suite like this:
+\begin{center}
+\includegraphics[width=0.5\columnwidth]{resources/jinja2-param.png}
+\end{center}
 
 \begin{shaded*}
 \textbf{Tutorial}: \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-jinja2.html}
 \end{shaded*}
+
+\subsection{Parameterized Tasks}
+
+Since 6.11.0, parameter expansion can be used instead of messy Jinja2 loops
+to generate tasks. Here is the parameterized task version of the
+small Jinja2 example just above:
+
+\begin{lstlisting}
+[cylc]
+    [[parameters]]
+        m = 0..4
+[scheduling]
+    [[dependencies]]
+        graph = """pre => sim<m> => post
+                     sim<m=2> => boo"""
+[runtime]
+    [[sim<m>]]
+        script = echo "I'm member $CYLC_TASK_PARAM_m"
+    [[boo]]
+        script = echo "BOO!"
+\end{lstlisting}
+
+This produces exactly the same result as the Jinja2 version, but it is much
+clearer. Multiple parameters can be used at once, instead of nested Jinja2
+loops.  For more on this topic see the Cylc User Guide.
+
 
 \subsection{Cylc Broadcast}
 
