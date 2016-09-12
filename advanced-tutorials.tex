@@ -18,8 +18,18 @@ So far we have defined cycling using graph section headings of the form
             graph = foo => bar
 \end{lstlisting}
 
-This is the simplest form of graph section heading, more powerful forms exist
-to help define complex recursions.
+This is the simplest form of graph section heading. More powerful forms exist
+to help define complex recurrences.
+
+They all follow abbreviations of a basic format - \lstinline{Rn/DATE-TIME/REPEAT_INTERVAL}, an ISO 8601\footnote{\url{https://en.wikipedia.org/wiki/ISO_8601}} recurrence format, where \lstinline{n} is an optional limit on repetitions, \lstinline{DATE-TIME} is a starting date-time, and \lstinline{REPEAT_INTERVAL} is the duration between successive recurrences.
+
+A date-time without a repeat interval must have a missing unit of date or time to extrapolate a repeat interval from. \lstinline{T00} above is short for \lstinline{2000-01-01T00}, and the absence of higher-level day information is taken to mean 'daily'. It is thereforce ultimately short for \lstinline{R/2000-01-01T00/P1D}. This means: starting at \lstinline{2000-01-01T00:00:00}, repeat every day (\lstinline{P1D}) indefinitely (\lstinline{R} with no number limit suffix).
+
+\lstinline{T12} would mean the same thing but starting at \lstinline{2000-01-01T12:00:00}. Another example - \lstinline{01T00} - has missing month information, so it is taken to mean 'monthly' or \lstinline{R/2000-01-01T00/P1M}.
+
+A repeat interval without a date-time is taken to use the initial cycle point as the start date-time. \lstinline{P2D} is taken to mean \lstinline{R/2000-01-01T00/P2D}.
+
+A single \lstinline{R1} is taken to mean 'run once at the initial cycle point'.
 
 \paragraph*{Examples} $ $
 
@@ -93,7 +103,7 @@ succeeds. It is possible to trigger tasks off of other states e.g:
 \label{Families}
 
 Often a suite will contain a collection of similar tasks. With cylc these
-tasks can be grouped together for convenience.
+tasks can be grouped together for convenience. This can factor out a lot of repeated configuration to make suites more readable and maintainable.
 
 \paragraph*{Example}
 In the following example the

@@ -1,4 +1,3 @@
 See http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-family-trigs.html.
 
-This suite lacks the suicide triggers explained in the later part of the tutorial,
-so tasks will fail and the suite will not automatically shutdown.
+This suite has tasks that are expected to fail, so the suite will not automatically shutdown. There are suicide triggers in a later part of the tutorial that automatically handle this, but they've been omitted for clarity.

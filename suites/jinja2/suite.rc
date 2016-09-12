@@ -23,12 +23,8 @@
         """
 [runtime]
     [[root]]
-        [[[remote]]]
-            host = $ROSE_ORIG_HOST
     [[DETONATE]]
         script = detonate  # Diverge from the online tutorial - use a script instead.
-        [[[environment]]]
-            ROSE_TASK_APP = detonate
     [[IGNITE]]
         script = sleep $((RANDOM % 2))
 {%- for num in range(ROCKET_NUMBER) %}
