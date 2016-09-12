@@ -6,8 +6,8 @@ Overview}.}
 
 \terminology{A \underline{task} represents a \underline{job} (a script or
 program) that runs on a computer.} We make this distinction because a {\em job}
-exists only when it runs, but its representation in a cylc has a longer
-lifetime.  For instance, a ``waiting'' tasks represents a job that will run
+exists only when it runs, but its representation in a cylc suite has a longer
+lifetime.  For instance, a ``waiting'' task represents a job that will run
 sometime in the future because its inputs have not been satisfied yet.
 
 \terminology{A \underline{cycle point} is a point on an integer or date-time
@@ -19,12 +19,17 @@ offset from that point. See Section~\ref{Clock Triggered Tasks}.
 
 \terminology{A \underline{continuous workflow of cycling tasks} is a single
 workflow composed of cycling tasks, not just a series of separate single-cycle
-workflows, and it may extend indefinitely into the future.} {\em Dynamic
-cycling} refers to extending a workflow on the fly. Contrast this with
-statically defining an entire - and therefore necessarily finite - workflow in
-advance (you can also do this in cylc, but dynamic cycling is more flexible and
-powerful, and has performance and monitoring advantages as you don't see the
-entire workflow at once).
+workflows, and it may extend indefinitely into the future.}  This describes
+cylc's classic {\em iterative cycling} mode in which the scheduler continually
+extends the workflow to future cycle points as the suite runs, and each
+instance of a repeated job is represented by the same logical task with a
+different cycle point. {\em Parameterized cycling} is an alternative to this
+for workflows that are {\em finite in extent and not too large}: each instance
+of a repeated job is represented by a different logical task with a different
+task name, and the entire workflow is mapped out at start-up rather than
+extended as the suite runs. Parameterized cycling is generally not as flexible
+or powerful as iterative cycling, and it has several significant disadvantages,
+but it can sometimes be useful - see the cylc user guide for more information. 
 
 The Section~\ref{Cylc Overview} example workflow is repeated here:
 \begin{center}
