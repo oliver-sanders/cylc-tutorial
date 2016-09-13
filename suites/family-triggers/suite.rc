@@ -1,0 +1,25 @@
+[cylc]
+    UTC mode = True # Ignore DST
+[scheduling]
+    [[dependencies]]
+        graph = """visit_mine => MINERS
+                   MINERS:finish-all & MINERS:succeed-any => sell_diamonds
+                   MINERS:finish-all & MINERS:fail-any => close_shafts
+                   # close_shafts => !MINERS  # Comment out for clarity
+                   """
+[runtime]
+    [[visit_mine]]
+        script = sleep 5; echo 'off to work we go'
+    [[MINERS]]
+        script = """
+sleep 5;
+if (($RANDOM % 2)); then
+    echo 'Diamonds!'; true;
+else
+    echo 'Nothing...'; false;
+fi
+"""
+    [[doc, grumpy, sleepy, happy, bashful, sneezy, dopey]]
+        inherit = MINERS
+    [[close_shafts, sell_diamonds]]
+        script = sleep 5

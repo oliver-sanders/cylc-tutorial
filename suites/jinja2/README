@@ -1,0 +1,5 @@
+See http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-jinja2.html.
+
+The bin/detonate script has been moved from a Rose app to a script, and is better commented.
+
+N.B. for non-VM cylc users, this suite must be run on localhost to correctly run.
