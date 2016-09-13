@@ -394,12 +394,13 @@ The {\em suite.rc} file should look like this:
     [[dependencies]]
         [[[T00]]]
             graph = """
-                blast_off[-P1D] => point_upwards
-                point_upwards => load_astronauts & fill_fuel_tank & \
-                                 set_coordinates
-                load_astronauts & set_coordinates => count_down
-                fill_fuel_tank => light_fuse => count_down
-                count_down => blast_off
+
+            blast_off[-P1D] => point_upwards
+            point_upwards => load_astronauts & fill_fuel_tank & set_coordinates
+            load_astronauts & set_coordinates => count_down
+            fill_fuel_tank => light_fuse => count_down
+            count_down => blast_off
+
             """
 [runtime]
     [[point_upwards]]
