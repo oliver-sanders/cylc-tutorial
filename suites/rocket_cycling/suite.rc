@@ -5,13 +5,10 @@
         [[[T00]]]
             graph = """
                 blast_off[-P1D] => point_upwards
-                point_upwards => load_astronauts
-                point_upwards => fill_fuel_tank
-                point_upwards => set_coordinates
-                fill_fuel_tank => light_fuse
-                set_coordinates => count_down
-                light_fuse => count_down
-                load_astronauts => count_down
+                point_upwards => load_astronauts & fill_fuel_tank & \
+                                 set_coordinates
+                load_astronauts & set_coordinates => count_down
+                fill_fuel_tank => light_fuse => count_down
                 count_down => blast_off
             """
 [runtime]
