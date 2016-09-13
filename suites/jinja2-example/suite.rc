@@ -8,6 +8,10 @@
 {% endfor -%}
         sim_m2 => boo"""
 [runtime]
+    [[root]]
+        pre-script = sleep $(( 5 + RANDOM % 10 ))
+    [[pre, post]]
+        script = true
 {% for MEM in range(N_MEMS) -%}
     [[sim_m{{MEM}}]]
         script = echo "I'm member {{MEM}}"

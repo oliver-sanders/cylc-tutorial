@@ -6,6 +6,10 @@
         graph = """pre => sim<m> => post
                      sim<m=2> => boo"""
 [runtime]
+    [[root]]
+        pre-script = sleep $(( 5 + RANDOM % 5 ))
+    [[pre, post]]
+        script = true
     [[sim<m>]]
         script = echo "I'm member $CYLC_TASK_PARAM_m"
     [[boo]]
