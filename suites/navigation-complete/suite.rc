@@ -1,0 +1,34 @@
+[cylc]
+    UTC mode = True # Ignore DST
+[scheduling]
+    initial cycle point = 20160601T00Z # 1 June 2016
+    final cycle point = 20160603T00Z # 3 June 2016
+    [[dependencies]]
+        [[[R1]]] # Run once at the start of the suite.
+            graph = """
+                compile_navigate => navigate
+                write_start_position => navigate
+            """
+        [[[PT3H]]] # Run every 3 hours (ISO 8601 date-time syntax).
+            graph = navigate[-PT3H] => navigate
+        [[[T12]]] # Run at 12:00Z each day.
+            graph = navigate => take_sun_sight
+        [[[T15]]] # Run at 15:00Z each day.
+            graph = take_sun_sight[-PT3H] => navigate
+[runtime]
+    [[root]]
+        pre-script = sleep 5 # Slow down tasks for visualization.
+    [[compile_navigate]]
+        script = """
+            gfortran $CYLC_SUITE_DEF_PATH/src/dead_reckoning.f90 \
+                -o $CYLC_SUITE_SHARE_PATH/dead_reckoning.exe
+        """
+    [[navigate]]
+        script = $CYLC_SUITE_SHARE_PATH/dead_reckoning.exe
+        [[[environment]]]
+            POSITION_FILEPATH = $CYLC_SUITE_SHARE_PATH/position
+            TIME_INTERVAL_HRS = 3
+    [[write_start_position]]
+        script = echo 50.0 -3.0 >$CYLC_SUITE_SHARE_PATH/position
+    [[take_sun_sight]]
+        script = sun_sight $CYLC_SUITE_SHARE_PATH/position

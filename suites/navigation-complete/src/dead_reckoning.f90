@@ -62,6 +62,17 @@ new_long = long + &
 new_lat = (180.0/pi) * new_lat
 new_long = (180.0/pi) * new_long
 
+lat = (180.0/pi) * lat
+long = (180.0/pi) * long
+CALL get_environment_variable("CYLC_TASK_LOG_ROOT",value=task_log_root,status=code)
+OPEN(1,file=TRIM(task_log_root) // '-map.html',action='write')
+WRITE(1,'(A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A)') &
+"<img src='https://maps.googleapis.com/maps/api/staticmap?center=",&
+lat,",",long,"&zoom=7&size=600x300&markers=color:blue|label:A|",&
+lat,",",long,"&markers=color:red|label:B|",new_lat,",",new_long,&
+"'/>"
+CLOSE(1)
+
 PRINT*, "New position, me hearties:",new_lat," ",new_long
 
 ! Overwrite position file with new lat and long

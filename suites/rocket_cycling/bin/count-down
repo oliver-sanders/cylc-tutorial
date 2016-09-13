@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for count in {5..1}; do
+    echo $count
+    sleep 1
+done
