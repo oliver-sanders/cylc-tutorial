@@ -329,14 +329,20 @@ $\$$ cylc graph navigation 20160601T0000Z 20160603T0000Z
 
 \subsubsection{Introduction}
 
-%\begin{figure}[h]
-%\includegraphics[width=1.0\columnwidth]{resources/rose-edit.png}
-%\caption{rose edit, a generic configuration GUI showing a dynamically generated panel for a section in the inputs for the Met Office Unified Model. The contents of the panel are generated from the relevant part of a Rose app file plus some simple metadata, both specified in flat INI-based text files. \label{rose edit}}
-%\end{figure}
-%
-%\begin{lstlisting}[mathescape, language=bash, title={rose-app.conf snippet used to drive Figure~\ref{rose edit}}]
-%TODO: insert snippet awaiting permission
-%\end{lstlisting}
+\begin{figure}[h]
+\includegraphics[width=1.0\columnwidth]{resources/rose-edit.png}
+\caption{rose edit, a generic configuration GUI showing a dynamically generated panel for a section in the inputs for the Met Office Unified Model. The contents of the panel are generated from the relevant part of a Rose app file plus some simple metadata, both specified in flat INI-based text files. \label{rose edit}}
+\end{figure}
+
+\begin{lstlisting}[mathescape, language=bash, title={rose-app.conf snippet used to drive Figure~\ref{rose edit}}]
+[namelist:run_rivers]
+i_river_vn=1
+!!l_inland=.false.
+l_rivers=.false.
+!!river_mcoef=3.1
+!!river_step=10800
+!!river_vel=0.5
+\end{lstlisting}
 
 Rose has a powerful set of utilities for the configuration and running of executables, suite
 storage and version control, and also includes some top-level suite running functionality that will be migrated to cylc.
