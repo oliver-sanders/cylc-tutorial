@@ -24,7 +24,7 @@
 [runtime]
     [[root]]
     [[DETONATE]]
-        script = detonate  # Diverge from the online tutorial - use a script instead.
+        script = echo $SOUND
     [[IGNITE]]
         script = sleep $((RANDOM % 2))
 {%- for num in range(ROCKET_NUMBER) %}
@@ -32,7 +32,6 @@
     [[detonate_rocket_{{ num_label }}]]
         inherit = DETONATE
         [[[environment]]]
-            COLOUR_CODE = {{ num % 5 + 1 }}
             SOUND = {{ ROCKET_SOUNDS[num % 2] }}
 {%- endfor %}
 {%- for num in range(ROCKET_NUMBER) %}

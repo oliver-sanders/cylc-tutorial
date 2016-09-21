@@ -149,7 +149,7 @@ Hello World!
 or use the \lstinline{rose suite-log} web-based suite log file viewer (also known as {\em Rose Bush}):
 
 \begin{lstlisting}[language=bash]
-$ cd ~/hello_world
+$ cd ~/tutorial/suites/hello_world
 $ rose suite-log
 # (now view suite and job logs in your web browser)
 \end{lstlisting}
@@ -331,7 +331,7 @@ sequence with associated dependencies defined in a graph string. An optional
             graph = model
 \end{lstlisting}
 This suite definition says to run task \lstinline=model= for each cycle point
-on a sequence of date-times with a 1-month interval between 2001-01 and 2001-05 
+on a sequence of date-times with a 1-month interval between 2000-01 and 2000-05 
 (see~\ref{advanced-cycling} for other kinds of cycling sequence).
 With no clock-triggers defined (see~\ref{Clock Triggered Tasks}) these
 date-times have no connection to the real-time clock.  Each instance of
