@@ -230,11 +230,26 @@ lat = (180.0/pi) * lat
 long = (180.0/pi) * long
 CALL get_environment_variable("CYLC_TASK_LOG_ROOT",value=task_log_root,status=code)
 OPEN(1,file=TRIM(task_log_root) // '-map.html',action='write')
-WRITE(1,'(A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A, F7.4, A)') &
-      "<img src='https://maps.googleapis.com/maps/api/staticmap?center=",&
-      lat,",",long,"&zoom=7&size=600x300&markers=color:blue|label:A|",&
-      lat,",",long,"&markers=color:red|label:B|",new_lat,",",new_long,&
-      "'/>"
+WRITE(1,'(A)') &
+"<html><head><link rel='stylesheet'",&
+"href='https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.css' /></head>",&
+"<body><div id='map' style='width: 1000px; height: 600px'></div>",&
+"<script src='https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js'></script>"
+WRITE(1,'(A, A, A, A F7.4, A, F7.4, A, F7.4, A, F7.4, A)') &
+"<script>var map = L.map('map');",&
+"L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',",&
+"{attribution: '&copy; <a href=""http://osm.org/copyright"">OpenStreetMap</a>",&
+"contributors'}).addTo(map);var polyline = L.polyline([[",&
+lat,", ",long,"],[",new_lat,", ",new_long,&
+"]], {color: 'red'}).addTo(map);map.fitBounds(polyline.getBounds());"
+WRITE(1,'(A F7.4, A, F7.4, A)') &
+"var start = L.marker([",lat,", ",long,"]).addTo(map);"
+WRITE(1,'(A F7.4, A, F7.4, A)') &
+"var end = L.marker([",new_lat,", ",new_long,"]).addTo(map);"
+WRITE(1,'(A)') &
+"start.bindPopup('Start');",&
+"end.bindPopup('End').openPopup();",&
+"map.zoomOut(2);</script></body></html>"
 CLOSE(1)
 \end{lstlisting}
 
