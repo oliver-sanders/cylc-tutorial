@@ -19,13 +19,14 @@
     [[IGNITE]]
         script = sleep $((RANDOM % 2))
     [[DETONATE]]
-        script = echo $SOUND
+        script = detonate
     [[ignite_rocket<rn>]]
         inherit = IGNITE
     [[detonate_rocket<rn>]]
         inherit = DETONATE
         pre-script = """SOUNDS=( {{ROCKET_SOUNDS | join(' ') }} )  # bash array
 rn=$((10#$CYLC_TASK_PARAM_rn))  # interpret 0-padded as decimal, not octal
+export COLOUR_CODE=$(( $rn % 5 + 1 ))
 export SOUND=${SOUNDS[ $(( rn % 2 )) ]}"""
     [[start]]
     [[stop]]
