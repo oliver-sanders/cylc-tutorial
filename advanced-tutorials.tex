@@ -3,6 +3,11 @@
 This section outlines some of the more advanced features of cylc along with
 links to tutorials on these features on the rose documentation website.
 
+The final example from each tutorial has been provided as a pre-built suite on
+the Metomi VM for convenience. These suites are referenced here in the ``Demo
+Suite'' sections. If you don't want to go work though the full tutorials these
+suites will give you working examples of the tutorials topic.
+
 
 \subsection{Advanced Cycling}
 \label{advanced-cycling}
@@ -57,8 +62,11 @@ A single \lstinline{R1} is taken to mean 'run once at the initial cycle point'.
 \\
 \end{tabular}
 
+\vspace{5mm}
+
 \begin{shaded*}
-\textbf{Tutorial}: TODO: Link to cylc documentation once next version has gone live
+\textbf{Further Reading}:
+\url{http://cylc.github.io/cylc/html/single/cug-html.html#9.3.4}
 \end{shaded*}
 
 
@@ -133,9 +141,11 @@ inherits the \lstinline{script} setting but overrides the
 \end{lstlisting}
 
 \begin{shaded*}
-\textbf{Tutorial}: \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-family-trigs.html}.
-\end{shaded*}
+\textbf{Tutorial}:
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-family-trigs.html}
 
+\textbf{Demo Suite}: \url{~/tutorial/suites/family-triggers}
+\end{shaded*}
 
 \subsection{Retries}
 Sometimes tasks fail, you can tell cylc to automatically retry failed tasks.
@@ -150,8 +160,11 @@ Sometimes tasks fail, you can tell cylc to automatically retry failed tasks.
 \end{lstlisting}
 
 \begin{shaded*}
-\textbf{Tutorial}: \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-retries.html}
-.
+\textbf{Tutorial}:
+\url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-retries.html}
+
+\textbf{Demo Suite}:
+\url{~/tutorial/suites/retries}
 \end{shaded*}
 
 
@@ -218,6 +231,9 @@ The \lstinline=cylc graph= command shows the suite like this:
 
 \begin{shaded*}
 \textbf{Tutorial}: \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-jinja2.html}
+
+\textbf{Demo Suite}:
+\url{~/tutorial/suites/jinja2}
 \end{shaded*}
 
 \subsection{Parameterized Tasks}
@@ -261,6 +277,9 @@ $ cylc broadcast <suite_name> -n <task_name> -s [remote]host=<host_name>
 
 \begin{shaded*}
 \textbf{Tutorial}: \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-broadcast.html}
+
+\textbf{Demo Suite}:
+\url{~/tutorial/suites/broadcast}
 \end{shaded*}
 
 \subsection{Suicide Triggers}
@@ -285,6 +304,9 @@ the task \lstinline{task} succeeds.
 
 \begin{shaded*}
 \textbf{Tutorial}: \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-suicide.html}
+
+\textbf{Demo Suite}:
+\url{~/tutorial/suites/suicide-triggers}
 \end{shaded*}
 
 \subsection{Queues}
@@ -308,6 +330,9 @@ tasks to run at a time.
 
 \begin{shaded*}
 \textbf{Tutorial}: \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-queues.html}
+
+\textbf{Demo Suite}:
+\url{~/tutorial/suites/queues}
 \end{shaded*}
 
 \subsection{Clock Triggered Tasks}
@@ -333,5 +358,8 @@ is possible using ''clock triggering``.
 
 \begin{shaded*}
 \textbf{Tutorial}: \url{http://metomi.github.io/rose/doc/rose-rug-advanced-tutorials-clock-triggered.html}.
+
+\textbf{Demo Suite}:
+\url{~/tutorial/suites/clock-triggers}
 \end{shaded*}
 
